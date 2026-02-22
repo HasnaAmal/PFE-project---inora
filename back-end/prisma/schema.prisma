@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -12,11 +6,48 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
 model User {
-  id       String @id @default(uuid())
-  fullName String
-  email    String @unique
-  password String
+  id        String   @id @default(uuid())
+  fullName  String
+  email     String   @unique
+  password  String
+  image     String?      // profile picture optional
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  events    Event[]
+  reviews   Review[]
+}
+
+model Event {
+  id        String       @id @default(uuid())
+  title     String
+  date      DateTime
+  status    EventStatus  @default(PENDING)
+
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  review    Review?      // optional one review per event
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  eventId   String   @unique
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+}
+
+enum EventStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
 }

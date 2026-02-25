@@ -1,25 +1,22 @@
+// index.js - FIXED
 import express from 'express';
 import cors from 'cors';
-import auth from './Routes/auth.js';
+import auth from './Routes/auth.js';  // your routes/auth.js
 import cookieParser from 'cookie-parser';
 
 const app = express();
 
 app.use(cors({
-    origin: "http://localhost:3000",
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"]
+  origin: 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE']
 }));
-
 app.use(express.json());
 app.use(cookieParser());
 
-app.get('/', (req, res) => {
-    res.send('Hello world');
-});
+app.get('/', (req, res) => res.send('Hello world'));
 
-app.use('/auth', auth);
+// FIXED: mount with /api/auth prefix
+app.use('/api/auth', auth);
 
-app.listen(4000, () => {
-    console.log('Server is running on port 4000');
-});
+app.listen(4000, () => console.log('Server is running on port 4000'));

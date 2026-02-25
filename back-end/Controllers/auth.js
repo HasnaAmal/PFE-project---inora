@@ -184,3 +184,22 @@ export const logout = async (req, res) => {
         return res.status(500).json({ message: "Something went wrong" });
     }
 };
+export const getMe = async (req, res) => {
+  try {
+    const token = req.cookies.token;
+    if (!token) {
+      return res.status(401).json({ message: 'No token' });
+    }
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: { id: true, fullName: true, email: true }
+    });
+    
+    res.json({ user });
+  } catch (error) {
+    console.error(error);
+    res.status(401).json({ message: 'Invalid token' });
+  }
+};

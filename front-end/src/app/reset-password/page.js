@@ -7,18 +7,27 @@ import Link from 'next/link';
 export default function ResetPassword() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [token, setToken] = useState('');
+
+  // === States ===
+  const [token, setToken] = useState<string | null>(null); // null: loading
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
 
+  // === Client-side only ===
   useEffect(() => {
     const urlToken = searchParams.get('token');
-    if (urlToken) setToken(urlToken);
+    setToken(urlToken); // إذا ماكاينش token، token = null
   }, [searchParams]);
 
-  async function handleSubmit(e) {
+  // === Prevent SSR build crash ===
+  if (token === null) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  // === Handle form submission ===
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (password.length < 6) {
       setMessage('Password must be at least 6 characters');
@@ -29,11 +38,9 @@ export default function ResetPassword() {
     setMessage('');
 
     try {
-const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/reset-password`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/reset-password`, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json' 
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ token, password }),
       });
@@ -42,9 +49,7 @@ const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/reset-passw
       
       if (res.ok) {
         setMessage('Password reset successfully! Redirecting to login...');
-        setTimeout(() => {
-          router.push('/login');
-        }, 2500);
+        setTimeout(() => router.push('/login'), 2500);
       } else {
         setMessage(data.message || 'Reset failed. Please try again.');
       }
@@ -55,6 +60,7 @@ const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/reset-passw
     }
   }
 
+  // === Invalid token message ===
   if (!token) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
@@ -77,6 +83,7 @@ const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/reset-passw
     );
   }
 
+  // === Reset form ===
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
       <div className="absolute inset-0 bg-cover bg-center -z-20" 

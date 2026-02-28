@@ -1,7 +1,8 @@
+// next.config.js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
-  reactCompiler: true,
-};
+  output: 'standalone',
+  // Add any other config options you had
+}
 
 export default nextConfig;

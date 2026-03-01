@@ -5,40 +5,30 @@ import auth from './Routes/auth.js';
 import cookieParser from 'cookie-parser';
 import reviewRoutes from './Routes/reviews.js';
 import dotenv from 'dotenv';
-const HOST = '0.0.0.0';
+import { prisma } from './lib/prisma.js';
 
-// Load environment variables
+// Load environment variables FIRST
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 4000; // Railway provides PORT dynamically
-
-// Get frontend URL from environment or use default
+const PORT = process.env.PORT || 4000;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
-// CORS configuration for Railway and local development
+// CORS configuration
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, Postman)
     if (!origin) return callback(null, true);
-    
-    // Allowed origins list
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:3001',
       FRONTEND_URL,
-      /\.railway\.app$/,  // Any Railway app domain
-      /\.up\.railway\.app$/ // Any Railway production domain
+      /\.railway\.app$/,
+      /\.up\.railway\.app$/
     ];
-    
-    // Check if origin is allowed
     const isAllowed = allowedOrigins.some(allowed => {
-      if (allowed instanceof RegExp) {
-        return allowed.test(origin);
-      }
+      if (allowed instanceof RegExp) return allowed.test(origin);
       return allowed === origin;
     });
-    
     if (isAllowed) {
       callback(null, true);
     } else {
@@ -46,11 +36,11 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true, // Important for cookies/sessions
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   exposedHeaders: ['Set-Cookie'],
-  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
+  optionsSuccessStatus: 200
 }));
 
 // Middleware
@@ -58,13 +48,13 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// Request logging middleware (optional but helpful for debugging)
+// Request logging
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.get('origin') || 'No origin'}`);
   next();
 });
 
-// Health check endpoint (important for Railway)
+// Health check endpoints
 app.get('/', (req, res) => {
   res.json({
     status: 'OK',
@@ -75,7 +65,6 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check endpoint for Railway
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
@@ -84,7 +73,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', auth);
 app.use('/api/reviews', reviewRoutes);
 
-// ✅ FIXED: 404 handler for undefined routes - removed '*' to avoid path-to-regexp error
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -92,15 +81,12 @@ app.use((req, res) => {
   });
 });
 
-// Global error handling middleware
+// Global error handler
 app.use((err, req, res, next) => {
   console.error('Error:', err.stack);
-  
-  // Don't expose internal error details in production
   const message = process.env.NODE_ENV === 'production' 
     ? 'Internal server error' 
     : err.message;
-  
   res.status(err.status || 500).json({
     success: false,
     message: message,
@@ -108,23 +94,41 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server with IPv6 support (required for Railway internal networking)
-const server = app.listen(PORT, '::', () => {
-  console.log('=================================');
-  console.log(`🚀 Server is running on port ${PORT}`);
-  console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Local: http://localhost:${PORT}`);
-  console.log(`🌍 Frontend URL: ${FRONTEND_URL}`);
-  console.log(`🌐 IPv6: Listening on :: (all interfaces)`);
-  console.log('=================================');
-});
+// Start server function
+async function startServer() {
+  try {
+    console.log('🔄 Testing database connection...');
+    console.log('📊 DATABASE_URL exists:', !!process.env.DATABASE_URL);
+    
+    await prisma.$connect();
+    console.log('✅ Database connected successfully');
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM signal received: closing HTTP server');
-  server.close(() => {
-    console.log('HTTP server closed');
-  });
-});
+    const server = app.listen(PORT, '::', () => {
+      console.log('=================================');
+      console.log(`🚀 Server is running on port ${PORT}`);
+      console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`🌍 Frontend URL: ${FRONTEND_URL}`);
+      console.log(`🌐 IPv6: Listening on :: (all interfaces)`);
+      console.log('=================================');
+    });
+
+    // Graceful shutdown
+    process.on('SIGTERM', () => {
+      console.log('📦 SIGTERM received, closing server...');
+      server.close(() => {
+        console.log('🛑 Server closed');
+        process.exit(0);
+      });
+    });
+
+  } catch (error) {
+    console.error('❌ Failed to connect to database:', error);
+    console.error('❌ Error details:', error.message);
+    process.exit(1);
+  }
+}
+
+// Start the server
+startServer();
 
 export default app;

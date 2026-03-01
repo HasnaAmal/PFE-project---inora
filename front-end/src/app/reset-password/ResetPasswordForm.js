@@ -15,10 +15,10 @@ export default function ResetPasswordForm() {
   const [passwordVisible, setPasswordVisible] = useState(false);
 
   useEffect(() => {
-    const urlToken = searchParams.get('token');
-    if (urlToken) setToken(urlToken);
-  }, [searchParams]);
-
+  const urlToken = searchParams.get('token');
+  console.log('Token from URL:', urlToken); // ← ضيفي هاد السطر هنا
+  if (urlToken) setToken(urlToken);
+}, [searchParams]);
   async function handleSubmit(e) {
     e.preventDefault();
     if (password.length < 6) {

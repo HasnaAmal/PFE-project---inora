@@ -1,4 +1,3 @@
-// index.js - Production Ready for Railway (FULLY FIXED)
 import express from 'express';
 import cors from 'cors';
 import auth from './Routes/auth.js';
@@ -7,7 +6,6 @@ import reviewRoutes from './Routes/reviews.js';
 import dotenv from 'dotenv';
 import { prisma } from './lib/prisma.js';
 
-// Load environment variables FIRST
 dotenv.config();
 
 const app = express();
@@ -29,12 +27,7 @@ app.use(cors({
       if (allowed instanceof RegExp) return allowed.test(origin);
       return allowed === origin;
     });
-    if (isAllowed) {
-      callback(null, true);
-    } else {
-      console.log('Blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
+    callback(null, isAllowed);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -50,11 +43,15 @@ app.use(cookieParser());
 
 // Request logging
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.get('origin') || 'No origin'}`);
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
 
-// Health check endpoints
+// Health check endpoint (IMPORTANT for Railway)
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'healthy' });
+});
+
 app.get('/', (req, res) => {
   res.json({
     status: 'OK',
@@ -65,36 +62,25 @@ app.get('/', (req, res) => {
   });
 });
 
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
-});
-
 // API Routes
 app.use('/api/auth', auth);
 app.use('/api/reviews', reviewRoutes);
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: `Route ${req.originalUrl} not found`
-  });
+  res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found` });
 });
 
-// Global error handler
+// Error handler
 app.use((err, req, res, next) => {
   console.error('Error:', err.stack);
-  const message = process.env.NODE_ENV === 'production' 
-    ? 'Internal server error' 
-    : err.message;
   res.status(err.status || 500).json({
     success: false,
-    message: message,
-    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
+    message: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message
   });
 });
 
-// Start server function
+// Start server
 async function startServer() {
   try {
     console.log('🔄 Testing database connection...');
@@ -114,7 +100,7 @@ async function startServer() {
 
     // Graceful shutdown
     process.on('SIGTERM', () => {
-      console.log('📦 SIGTERM received, closing server...');
+      console.log('📦 SIGTERM received, closing server gracefully...');
       server.close(() => {
         console.log('🛑 Server closed');
         process.exit(0);
@@ -123,12 +109,11 @@ async function startServer() {
 
   } catch (error) {
     console.error('❌ Failed to connect to database:', error);
-    console.error('❌ Error details:', error.message);
     process.exit(1);
   }
 }
 
-// Start the server
+// Start the server (ONCE)
 startServer();
 
 export default app;

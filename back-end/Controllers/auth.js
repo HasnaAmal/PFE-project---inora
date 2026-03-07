@@ -7,7 +7,6 @@ export const register = async (req, res) => {
   try {
     const { fullName, email, password, adminCode } = req.body;
 
-    // ✅ Determine role from admin code
     const role = adminCode && adminCode === process.env.ADMIN_SECRET_CODE
       ? 'admin'
       : 'user';
@@ -32,9 +31,8 @@ export const register = async (req, res) => {
   }
 };
 
-
 export const login = async (req, res) => {
-  try {                                          // ✅ missing this
+  try {
     const { email, password, role, adminCode } = req.body;
 
     const user = await prisma.user.findFirst({ where: { email } });
@@ -43,12 +41,17 @@ export const login = async (req, res) => {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(400).json({ message: 'Invalid password' });
 
-    // ✅ Role mismatch check
+    // ✅ block suspended users from logging in
+    if (user.suspended) {
+      return res.status(403).json({
+        message: 'Your account has been suspended. Please contact support.'
+      });
+    }
+
     if (role && user.role !== role) {
       return res.status(403).json({ message: `You are not registered as ${role}` });
     }
 
-    // ✅ Admin code check
     if (role === 'admin') {
       if (!adminCode) {
         return res.status(403).json({ message: 'Admin code is required' });
@@ -66,157 +69,173 @@ export const login = async (req, res) => {
 
     res.cookie("token", accessToken, {
       httpOnly: true,
-      secure: false,        // ← true in production
+      secure:   false,
       sameSite: "lax",
-      maxAge: 60 * 60 * 1000
+      maxAge:   60 * 60 * 1000
     });
 
     return res.status(200).json({
       message: "Login successful",
       user: {
-        id: user.id,
+        id:       user.id,
         fullName: user.fullName,
-        email: user.email,
-        role: user.role,
+        email:    user.email,
+        role:     user.role,
       }
     });
 
-  } catch (error) {                              // ✅ now matches correctly
+  } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
 
-
-
-
 export const resetPassword = async (req, res) => {
-    try {
-        const { token, password } = req.body;
-        if (!token) {
-            return res.status(400).json({ message: 'Reset token is required' });
-        }
-        // Verify reset token
-        const decoded = jwt.verify(token, process.env.JWT_RESET_SECRET);
-        // Find user from token payload
-        const user = await prisma.user.findUnique({
-            where: { id: decoded.id }
-        });
-        if (!user) {
-            return res.status(400).json({ message: 'Invalid token' });
-        }
-        // Hash new password
-        const hashedPassword = await bcrypt.hash(password, 10);
-        // Update password
-        await prisma.user.update({
-            where: { id: user.id },
-            data: { password: hashedPassword }
-        });
-        return res.status(200).json({
-            message: 'Password reset successful'
-        });
-    } catch (error) {
-        if (error.name === 'TokenExpiredError') {
-            return res.status(400).json({ message: 'Reset token expired' });
-        }
-        if (error.name === 'JsonWebTokenError') {
-            return res.status(400).json({ message: 'Invalid reset token' });
-        }
-        console.error(error);
-        return res.status(500).json({ message: 'Something went wrong' });
-    }
+  try {
+    const { token, password } = req.body;
+    if (!token) return res.status(400).json({ message: 'Reset token is required' });
+
+    const decoded = jwt.verify(token, process.env.JWT_RESET_SECRET);
+    const user = await prisma.user.findUnique({ where: { id: decoded.id } });
+    if (!user) return res.status(400).json({ message: 'Invalid token' });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await prisma.user.update({
+      where: { id: user.id },
+      data:  { password: hashedPassword }
+    });
+
+    return res.status(200).json({ message: 'Password reset successful' });
+
+  } catch (error) {
+    if (error.name === 'TokenExpiredError')
+      return res.status(400).json({ message: 'Reset token expired' });
+    if (error.name === 'JsonWebTokenError')
+      return res.status(400).json({ message: 'Invalid reset token' });
+    console.error(error);
+    return res.status(500).json({ message: 'Something went wrong' });
+  }
 };
 
 export const forgotPassword = async (req, res) => {
-    try {
+  try {
+    const { email } = req.body;
+    const user = await prisma.user.findFirst({ where: { email } });
 
-        const { email } = req.body;
-
-        const user = await prisma.user.findFirst({
-            where: { email }
-        });
-
-        // Always return same response (security)
-        if (!user) {
-            return res.status(200).json({
-                message: "If the email exists, a reset link has been sent"
-            });
-        }
-
-        const resetToken = jwt.sign(
-            { id: user.id },
-            process.env.JWT_RESET_SECRET,
-            { expiresIn: "15m" }
-        );
-
-        const resetLink =
-            `http://localhost:3000/reset-password?token=${resetToken}`;
-
-        // Send email
-        await transporter.sendMail({
-            from: `"Support" <${process.env.EMAIL_USER}>`,
-            to: user.email,
-            subject: "Password Reset",
-            html: `
-                <h2>Password Reset</h2>
-                <p>You requested a password reset.</p>
-                <p>Click the button below:</p>
-                <a href="${resetLink}" 
-                   style="padding:10px 20px;background:#4CAF50;color:white;text-decoration:none;border-radius:5px;">
-                   Reset Password
-                </a>
-                <p>This link expires in 15 minutes.</p>
-            `
-        });
-
-        return res.status(200).json({
-            message: "If the email exists, a reset link has been sent"
-        });
-
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: "Something went wrong" });
+    if (!user) {
+      return res.status(200).json({ message: "If the email exists, a reset link has been sent" });
     }
+
+    const resetToken = jwt.sign(
+      { id: user.id },
+      process.env.JWT_RESET_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    const resetLink = `http://localhost:3000/reset-password?token=${resetToken}`;
+
+    await transporter.sendMail({
+      from:    `"Support" <${process.env.EMAIL_USER}>`,
+      to:      user.email,
+      subject: "Password Reset",
+      html: `
+        <h2>Password Reset</h2>
+        <p>You requested a password reset.</p>
+        <p>Click the button below:</p>
+        <a href="${resetLink}"
+           style="padding:10px 20px;background:#4CAF50;color:white;text-decoration:none;border-radius:5px;">
+           Reset Password
+        </a>
+        <p>This link expires in 15 minutes.</p>
+      `
+    });
+
+    return res.status(200).json({ message: "If the email exists, a reset link has been sent" });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
 };
 
 export const logout = async (req, res) => {
-    try {
-
-        res.clearCookie("token");
-
-        return res.status(200).json({
-            message: "Logged out successfully"
-        });
-
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: "Something went wrong" });
-    }
+  try {
+    res.clearCookie("token");
+    return res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
 };
+
 export const getMe = async (req, res) => {
   try {
     const token = req.cookies.token;
-    if (!token) {
-      return res.status(401).json({ message: 'No token' });
-    }
-    
+    if (!token) return res.status(401).json({ message: 'No token' });
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await prisma.user.findUnique({
-  where: { id: decoded.id },
-  select: { 
-      id:        true,
-      fullName:  true,
-      email:     true,
-      role:      true,
-      avatarUrl: true,  // ✅ make sure this is here
-      createdAt: true,  // ✅ must be here
-  }
-});
+      where:  { id: decoded.id },
+      select: {
+        id:        true,
+        fullName:  true,
+        email:     true,
+        role:      true,
+        avatarUrl: true,
+        createdAt: true,
+      }
+    });
 
-    
     res.json({ user });
   } catch (error) {
     console.error(error);
     res.status(401).json({ message: 'Invalid token' });
+  }
+};
+
+export const getAdminUsers = async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Forbidden' });
+
+    const users = await prisma.user.findMany({
+      select: {
+        id:        true,
+        fullName:  true,
+        email:     true,
+        role:      true,
+        suspended: true,
+        createdAt: true,
+        _count: {
+          select: {
+            gatheringRequests: true,
+            reviews:           true,
+            conversations:     true,
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json(users);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Something went wrong' });
+  }
+};
+
+export const toggleSuspendUser = async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Forbidden' });
+
+    const { suspended } = req.body;
+    const updated = await prisma.user.update({
+      where: { id: req.params.id },
+      data:  { suspended }
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Something went wrong' });
   }
 };

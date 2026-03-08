@@ -1,42 +1,92 @@
-// index.js - Production Ready for Railway (FULLY FIXED)
 import express from 'express';
 import cors from 'cors';
-import auth from './Routes/auth.js';
+import { createServer } from 'http';         
+import { Server } from 'socket.io';            
+import cron from 'node-cron';                  
 import cookieParser from 'cookie-parser';
+import dotenv from 'dotenv';
+
+// Routes
+import auth from './Routes/auth.js';
 import reviewRoutes from './Routes/reviews.js';
 import profile from './Routes/profile.js';
-import dotenv from 'dotenv';
 import bookingRoutes from './Routes/booking.js';
+// import chat from './Routes/chat.js';        
+
+// Prisma for chat features
+import { prisma } from './lib/prisma.js';      
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 4000; // Railway provides PORT dynamically
+const PORT = process.env.PORT || 4000;
 
-// Get frontend URL from environment or use default
+// Create HTTP server for Socket.io
+const httpServer = createServer(app);          
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
-// CORS configuration for Railway and local development
+// Socket.io setup
+const io = new Server(httpServer, {            
+  cors: { 
+    origin: FRONTEND_URL, 
+    credentials: true 
+  }
+});
+
+app.set('io', io);                              
+
+// Socket.io events
+io.on('connection', (socket) => {               
+  console.log('🔌 New client connected:', socket.id);
+  
+  socket.on('join', (userId) => {
+    if (!userId) return;
+    socket.join(`user_${userId}`);
+    console.log(`👤 User ${userId} joined room`);
+  });
+
+  socket.on('join_admin', () => {
+    socket.join('admins');
+    console.log('🛡️ Admin joined admins room');
+  });
+
+  socket.on('typing', ({ convoId, userId }) => {
+    socket.to('admins').to(`user_${userId}`).emit('typing', { convoId });
+  });
+
+  socket.on('stop_typing', ({ convoId, userId }) => {
+    socket.to('admins').to(`user_${userId}`).emit('stop_typing', { convoId });
+  });
+
+  // ... rest of socket events
+});
+
+// Cron job to auto-close inactive conversations (48h)
+cron.schedule('0 * * * *', async () => {        // ← zid mn Hasna
+  const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
+  await prisma.conversation.updateMany({
+    where: { status: 'OPEN', updatedAt: { lt: cutoff } },
+    data: { status: 'CLOSED' }
+  });
+  console.log('🧹 Closed inactive conversations');
+});
+
+// CORS configuration 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, Postman)
     if (!origin) return callback(null, true);
     
-    // Allowed origins list
     const allowedOrigins = [
       'https://pleasant-enthusiasm-production-0c41.up.railway.app',
       'http://localhost:3001',
       FRONTEND_URL,
-      /\.railway\.app$/,  // Any Railway app domain
-      /\.up\.railway\.app$/ // Any Railway production domain
+      /\.railway\.app$/,
+      /\.up\.railway\.app$/
     ];
     
-    // Check if origin is allowed
     const isAllowed = allowedOrigins.some(allowed => {
-      if (allowed instanceof RegExp) {
-        return allowed.test(origin);
-      }
+      if (allowed instanceof RegExp) return allowed.test(origin);
       return allowed === origin;
     });
     
@@ -47,11 +97,11 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true, // Important for cookies/sessions
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], // Merged: added PATCH
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], // Merged: added X-Requested-With
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   exposedHeaders: ['Set-Cookie'],
-  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
+  optionsSuccessStatus: 200
 }));
 
 // Middleware
@@ -60,13 +110,13 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 app.use('/uploads', express.static('uploads'));
 
-// Request logging middleware (optional but helpful for debugging)
+// Request logging
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.get('origin') || 'No origin'}`);
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
 
-// Health check endpoint (important for Railway)
+// Health check endpoints 
 app.get('/', (req, res) => {
   res.json({
     status: 'OK',
@@ -77,18 +127,18 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check endpoint for Railway
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
-// API Routes
+// API Routes 
 app.use('/api/auth', auth);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/profile', profile);
 app.use('/api/bookings', bookingRoutes);
+// app.use('/api/chat', chat);  // ← uncomment when chat route is ready
 
-// ✅ FIXED: 404 handler for undefined routes - removed '*' to avoid path-to-regexp error
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -96,11 +146,10 @@ app.use((req, res) => {
   });
 });
 
-// Global error handling middleware
+// Error handler
 app.use((err, req, res, next) => {
   console.error('Error:', err.stack);
   
-  // Don't expose internal error details in production
   const message = process.env.NODE_ENV === 'production' 
     ? 'Internal server error' 
     : err.message;
@@ -112,21 +161,21 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server with IPv6 support (required for Railway internal networking)
-const server = app.listen(PORT, '::', () => {
+// Start server with httpServer 
+httpServer.listen(PORT, '::', () => {
   console.log('=================================');
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Local: http://localhost:${PORT}`);
   console.log(`🌍 Frontend URL: ${FRONTEND_URL}`);
-  console.log(`🌐 IPv6: Listening on :: (all interfaces)`);
+  console.log(`🔌 Socket.io enabled`);
   console.log('=================================');
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('SIGTERM signal received: closing HTTP server');
-  server.close(() => {
+  console.log('SIGTERM received: closing server');
+  httpServer.close(() => {
     console.log('HTTP server closed');
   });
 });

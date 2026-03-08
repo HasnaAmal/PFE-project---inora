@@ -1,6 +1,8 @@
 import { Playfair_Display, Cormorant_Garamond, Lato } from 'next/font/google';
 import './globals.css';
-import { AuthProvider } from '../context/AuthContext';
+import { AuthProvider }    from '../context/AuthContext';
+import ChatWidget          from '@/components/ChatWidget';
+import AdminChatWidget     from '@/components/AdminChatWidget';
 
 const playfair = Playfair_Display({ 
   subsets: ['latin'], 
@@ -30,8 +32,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${playfair.variable} ${cormorant.variable} ${lato.variable}`}>
-        <AuthProvider>     {/* ✅ wraps everything */}
+        <AuthProvider>
           {children}
+          {/*<ChatWidget />       
+          <AdminChatWidget /> */}
         </AuthProvider>
       </body>
     </html>

@@ -307,12 +307,16 @@ export default function Admin() {
           <nav className="flex-1 px-4 space-y-1">
             <p className="px-4 mb-3 font-['Cormorant_Garamond',serif] text-[0.5rem] tracking-[0.35em] uppercase text-[#FBEAD6]/20">Menu</p>
             {navItems.map((item, i) => (
-              <button key={item.id} onClick={() => setActiveTab(item.id)}
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
                 style={{ animationDelay: `${i * 60}ms` }}
-                className={`w-full flex items-center gap-3 px-5 py-3.5 transition-all duration-400 relative group ${activeTab === item.id
+                className={`w-full flex items-center gap-3 px-5 py-3.5 transition-all duration-400 relative group ${
+                  activeTab === item.id
                     ? 'bg-[#FBEAD6]/12 border border-[#C87D87]/30'
                     : 'border border-transparent hover:border-[#FBEAD6]/10 hover:bg-[#FBEAD6]/6'
-                  }`}>
+                }`}
+              >
                 {activeTab === item.id && (
                   <div className="absolute inset-0 bg-gradient-to-r from-[#C87D87]/8 via-transparent to-transparent" />
                 )}
@@ -320,13 +324,15 @@ export default function Admin() {
                   <div className="absolute top-0.5 left-0.5 w-2 h-2 border-t border-l border-[#C87D87]/60" />
                   <div className="absolute bottom-0.5 right-0.5 w-2 h-2 border-b border-r border-[#C87D87]/60" />
                 </>}
-                <span className={`relative z-10 flex-shrink-0 transition-colors duration-300 ${activeTab === item.id ? 'text-[#C87D87]' : 'text-[#FBEAD6]/30 group-hover:text-[#C87D87]/50'
-                  }`}>
+                <span className={`relative z-10 flex-shrink-0 transition-colors duration-300 ${
+                  activeTab === item.id ? 'text-[#C87D87]' : 'text-[#FBEAD6]/30 group-hover:text-[#C87D87]/50'
+                }`}>
                   {item.icon}
                 </span>
                 <div className="relative z-10 text-left flex-1 min-w-0">
-                  <p className={`font-['Cormorant_Garamond',serif] text-xs tracking-[0.2em] uppercase leading-tight transition-colors duration-300 ${activeTab === item.id ? 'text-[#FBEAD6]' : 'text-[#FBEAD6]/50 group-hover:text-[#FBEAD6]/80'
-                    }`}>{item.label}</p>
+                  <p className={`font-['Cormorant_Garamond',serif] text-xs tracking-[0.2em] uppercase leading-tight transition-colors duration-300 ${
+                    activeTab === item.id ? 'text-[#FBEAD6]' : 'text-[#FBEAD6]/50 group-hover:text-[#FBEAD6]/80'
+                  }`}>{item.label}</p>
                   <p className="font-['Cormorant_Garamond',serif] italic text-[0.58rem] text-[#FBEAD6]/20 mt-0.5">{item.sub}</p>
                 </div>
                 {item.badge > 0 && (
@@ -349,12 +355,16 @@ export default function Admin() {
           <div className="px-4 pb-3">
             <button onClick={handleLogout}
               className="w-full flex items-center gap-3 px-5 py-3.5 border border-transparent hover:border-[#C87D87]/25 hover:bg-[#C87D87]/10 transition-all duration-300 group">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-[#FBEAD6]/25 group-hover:text-[#C87D87] transition-colors duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-[#FBEAD6]/25 group-hover:text-[#C87D87] transition-colors duration-300 group-hover:translate-x-0.5 transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
               <div className="text-left">
-                <p className="font-['Cormorant_Garamond',serif] text-xs tracking-[0.2em] uppercase text-[#FBEAD6]/30 group-hover:text-[#FBEAD6]/70 transition-colors">Sign Out</p>
-                <p className="font-['Cormorant_Garamond',serif] italic text-[0.58rem] text-[#FBEAD6]/15 group-hover:text-[#FBEAD6]/30 transition-colors">End your session</p>
+                <p className="font-['Cormorant_Garamond',serif] text-xs tracking-[0.2em] uppercase text-[#FBEAD6]/30 group-hover:text-[#FBEAD6]/70 transition-colors">
+                  Sign Out
+                </p>
+                <p className="font-['Cormorant_Garamond',serif] italic text-[0.58rem] text-[#FBEAD6]/15 group-hover:text-[#FBEAD6]/30 transition-colors">
+                  End your session
+                </p>
               </div>
             </button>
           </div>
@@ -651,10 +661,11 @@ export default function Admin() {
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => setShowUnreadOnly(!showUnreadOnly)}
-                      className={`px-4 py-2 rounded-lg text-sm font-['Cormorant_Garamond',serif] tracking-wider transition-all ${showUnreadOnly
-                          ? 'bg-[#C87D87] text-white'
+                      className={`px-4 py-2 rounded-lg text-sm font-['Cormorant_Garamond',serif] tracking-wider transition-all ${
+                        showUnreadOnly 
+                          ? 'bg-[#C87D87] text-white' 
                           : 'bg-white/50 border border-[#C87D87]/30 text-[#3a3027]'
-                        }`}
+                      }`}
                     >
                       {showUnreadOnly ? 'Toutes les réservations' : `Nouvelles (${unreadBookings.length})`}
                     </button>
@@ -685,20 +696,20 @@ export default function Admin() {
                 ) : (
                   <div className="grid gap-6">
                     {Object.entries(groupBookingsByUser()).map(([email, data]) => {
-                      const userBookings = showUnreadOnly
+                      const userBookings = showUnreadOnly 
                         ? data.bookings.filter(b => unreadBookings.some(ub => ub.id === b.id))
                         : data.bookings;
-
+                      
                       if (userBookings.length === 0) return null;
-
+                      
                       // Trier les réservations par date (la plus récente d'abord)
-                      const sortedBookings = [...userBookings].sort((a, b) =>
+                      const sortedBookings = [...userBookings].sort((a, b) => 
                         new Date(b.createdAt || b.submittedAt || 0) - new Date(a.createdAt || a.submittedAt || 0)
                       );
-
+                      
                       return (
                         <div key={email} className="relative bg-white/75 border border-[#C87D87]/15 p-7 card-hover animate-[fadeUp_0.5s_ease_forwards] group overflow-hidden">
-
+                          
                           {/* Lace corners */}
                           <div className="absolute top-2 left-2 w-5 h-5 pointer-events-none">
                             <div className="absolute top-0 left-0 w-full h-px bg-[#C87D87]/30" />
@@ -725,7 +736,7 @@ export default function Admin() {
                                   <p className="font-['Cormorant_Garamond',serif] text-sm text-[#7a6a5a]/70">{email}</p>
                                 </div>
                               </div>
-
+                              
                               {/* Badge du nombre total de réservations */}
                               <div className="text-center">
                                 <div className="text-3xl font-['Playfair_Display',serif] italic text-[#C87D87]">
@@ -736,20 +747,22 @@ export default function Admin() {
                                 </p>
                               </div>
                             </div>
-
+                            
                             {/* Statut utilisateur */}
                             {data.user && (
                               <div className="mt-3 flex gap-2">
-                                <span className={`px-3 py-1 rounded-full text-xs font-['Cormorant_Garamond',serif] ${data.user.suspended
+                                <span className={`px-3 py-1 rounded-full text-xs font-['Cormorant_Garamond',serif] ${
+                                  data.user.suspended 
                                     ? 'bg-red-100 text-red-600 border border-red-300'
                                     : 'bg-green-100 text-green-600 border border-green-300'
-                                  }`}>
+                                }`}>
                                   {data.user.suspended ? 'Suspendu' : 'Actif'}
                                 </span>
-                                <span className={`px-3 py-1 rounded-full text-xs font-['Cormorant_Garamond',serif] ${data.user.role === 'admin'
+                                <span className={`px-3 py-1 rounded-full text-xs font-['Cormorant_Garamond',serif] ${
+                                  data.user.role === 'admin'
                                     ? 'bg-[#6B7556]/20 text-[#6B7556] border border-[#6B7556]/30'
                                     : 'bg-[#C87D87]/10 text-[#C87D87] border border-[#C87D87]/25'
-                                  }`}>
+                                }`}>
                                   {data.user.role === 'admin' ? 'Admin' : 'Membre'}
                                 </span>
                               </div>
@@ -760,16 +773,16 @@ export default function Admin() {
                           <div className="space-y-4">
                             {sortedBookings.map((booking, idx) => {
                               const isUnread = unreadBookings.some(b => b.id === booking.id);
-
+                              
                               return (
                                 <div key={booking.id || `${email}-${idx}`}
                                   className={`relative p-4 ${isUnread ? 'bg-red-50/50 border-l-4 border-l-red-400' : 'bg-[#FBEAD6]/20'} border border-[#C87D87]/10 rounded-lg`}>
-
+                                  
                                   {/* علامة غير مقروءة */}
                                   {isUnread && (
                                     <div className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
                                   )}
-
+                                  
                                   {/* Numéro de réservation */}
                                   <div className="absolute top-2 left-2 text-[0.6rem] font-['Cormorant_Garamond',serif] text-[#C87D87]/40">
                                     #{idx + 1}
@@ -811,15 +824,15 @@ export default function Admin() {
                                       <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                       </svg>
-                                      {new Date(booking.createdAt || booking.submittedAt || Date.now()).toLocaleDateString('fr-FR', {
-                                        hour: '2-digit',
+                                      {new Date(booking.createdAt || booking.submittedAt || Date.now()).toLocaleDateString('fr-FR', { 
+                                        hour: '2-digit', 
                                         minute: '2-digit',
-                                        day: 'numeric',
-                                        month: 'short',
-                                        year: 'numeric'
+                                        day: 'numeric', 
+                                        month: 'short', 
+                                        year: 'numeric' 
                                       })}
                                     </span>
-
+                                    
                                     {/* زر تعليم كمقروء */}
                                     {isUnread && (
                                       <button
@@ -859,7 +872,7 @@ export default function Admin() {
                 <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
                   <div className="relative flex-1 min-w-[180px] max-w-xs">
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-[#7a6a5a]/40 absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
                     </svg>
                     <input
                       value={userSearch}
@@ -871,19 +884,20 @@ export default function Admin() {
 
                   <div className="flex items-center gap-1.5">
                     {[
-                      { value: 'all', label: 'All' },
-                      { value: 'user', label: 'Members' },
-                      { value: 'admin', label: 'Admins' },
+                      { value: 'all',   label: 'All'     },
+                      { value: 'user',  label: 'Members' },
+                      { value: 'admin', label: 'Admins'  },
                     ].map(opt => (
                       <button key={opt.value} onClick={() => setRoleFilter(opt.value)}
-                        className={`font-['Cormorant_Garamond',serif] italic text-xs px-4 py-2 rounded-full border transition-all duration-200 ${roleFilter === opt.value
+                        className={`font-['Cormorant_Garamond',serif] italic text-xs px-4 py-2 rounded-full border transition-all duration-200 ${
+                          roleFilter === opt.value
                             ? opt.value === 'admin'
                               ? 'bg-[#6B7556] text-white border-[#6B7556]'
                               : opt.value === 'user'
-                                ? 'bg-[#C87D87] text-white border-[#C87D87]'
-                                : 'bg-[#3a3027] text-white border-[#3a3027]'
+                              ? 'bg-[#C87D87] text-white border-[#C87D87]'
+                              : 'bg-[#3a3027] text-white border-[#3a3027]'
                             : 'text-[#7a6a5a]/70 border-[#C87D87]/25 hover:border-[#C87D87]/50 bg-white/50'
-                          }`}>
+                        }`}>
                         {opt.label}
                         <span className="ml-1.5 opacity-60 text-[0.6rem]">
                           {opt.value === 'all'
@@ -912,21 +926,22 @@ export default function Admin() {
 
                     {filteredUsers.map((u, i) => {
                       // Compter les réservations pour cet utilisateur
-                      const userBookingsCount = bookings.filter(b =>
+                      const userBookingsCount = bookings.filter(b => 
                         b.email?.toLowerCase() === u.email?.toLowerCase()
                       ).length;
 
                       // Vérifier si l'utilisateur a des réservations
                       const hasBookings = userBookingsCount > 0;
-
+                      
                       return (
                         <div key={u.id}
                           className={`grid grid-cols-[1fr_1.4fr_80px_80px_80px_100px] gap-4 px-5 py-4 items-center border-b border-[#C87D87]/8 last:border-0 transition-colors duration-200 hover:bg-[#C87D87]/4 ${u.suspended ? 'opacity-50' : ''}`}
                           style={{ animation: `fadeUp .3s ease ${i * 40}ms both` }}>
 
                           <div className="flex items-center gap-2.5 min-w-0">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-['Playfair_Display',serif] text-xs flex-shrink-0 bg-gradient-to-br ${u.role === 'admin' ? 'from-[#6B7556]/90 to-[#3a3027]/80' : 'from-[#C87D87]/80 to-[#6B7556]/80'
-                              }`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-['Playfair_Display',serif] text-xs flex-shrink-0 bg-gradient-to-br ${
+                              u.role === 'admin' ? 'from-[#6B7556]/90 to-[#3a3027]/80' : 'from-[#C87D87]/80 to-[#6B7556]/80'
+                            }`}>
                               {u.fullName.charAt(0).toUpperCase()}
                             </div>
                             <div className="min-w-0">
@@ -939,10 +954,11 @@ export default function Admin() {
 
                           <p className="font-['Cormorant_Garamond',serif] italic text-xs text-[#7a6a5a]/70 truncate">{u.email}</p>
 
-                          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[0.6rem] font-['Cormorant_Garamond',serif] tracking-[.15em] uppercase w-fit ${u.role === 'admin'
+                          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[0.6rem] font-['Cormorant_Garamond',serif] tracking-[.15em] uppercase w-fit ${
+                            u.role === 'admin'
                               ? 'bg-[#6B7556]/15 text-[#6B7556] border border-[#6B7556]/30'
                               : 'bg-[#C87D87]/10 text-[#C87D87] border border-[#C87D87]/25'
-                            }`}>
+                          }`}>
                             {u.role}
                           </span>
 
@@ -964,10 +980,11 @@ export default function Admin() {
 
                           {u.role !== 'admin' ? (
                             <button onClick={() => toggleSuspend(u.id, u.suspended)}
-                              className={`font-['Cormorant_Garamond',serif] text-[0.6rem] tracking-[.18em] uppercase px-3 py-1.5 rounded-lg border transition-all duration-200 w-fit ${u.suspended
+                              className={`font-['Cormorant_Garamond',serif] text-[0.6rem] tracking-[.18em] uppercase px-3 py-1.5 rounded-lg border transition-all duration-200 w-fit ${
+                                u.suspended
                                   ? 'text-[#6B7556] border-[#6B7556]/40 hover:bg-[#6B7556]/10'
                                   : 'text-[#C87D87] border-[#C87D87]/40 hover:bg-[#C87D87]/10'
-                                }`}>
+                              }`}>
                               {u.suspended ? 'Restore' : 'Suspend'}
                             </button>
                           ) : (
@@ -1014,8 +1031,8 @@ export default function Admin() {
               <div className="animate-[fadeUp_0.5s_ease_forwards] max-w-lg">
                 <div className="relative bg-white/65 border border-[#C87D87]/15 overflow-hidden"
                   style={{ boxShadow: '0 8px 40px rgba(200,125,135,0.1)' }}>
-                  {[['top-2 left-2', 'top', 'left'], ['top-2 right-2', 'top', 'right'],
-                  ['bottom-2 left-2', 'bottom', 'left'], ['bottom-2 right-2', 'bottom', 'right']
+                  {[['top-2 left-2','top','left'],['top-2 right-2','top','right'],
+                    ['bottom-2 left-2','bottom','left'],['bottom-2 right-2','bottom','right']
                   ].map(([pos, v, h], i) => (
                     <div key={i} className={`absolute ${pos} w-6 h-6 pointer-events-none`}>
                       <div className={`absolute ${v}-0 ${h}-0 w-full h-px bg-[#C87D87]/35`} />

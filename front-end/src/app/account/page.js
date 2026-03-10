@@ -26,8 +26,13 @@ export default function AccountPage() {
   const [deleteMsg,     setDeleteMsg]     = useState({ type: '', text: '' });
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // ── Bookings state ──
+  const [bookings,        setBookings]        = useState([]);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [bookingsError,   setBookingsError]   = useState(null);
+
   useEffect(() => {
-    fetch('http://localhost:4000/api/profile/me', { credentials: 'include' })
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me`, { credentials: 'include' })
       .then(res => { if (!res.ok) throw new Error('Failed to load profile'); return res.json(); })
       .then(data => {
         setProfile(data);
@@ -38,6 +43,18 @@ export default function AccountPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Fetch bookings when section becomes active
+  useEffect(() => {
+    if (activeSection !== 'bookings') return;
+    setBookingsLoading(true);
+    setBookingsError(null);
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/bookings/my`, { credentials: 'include' })
+      .then(res => { if (!res.ok) throw new Error('Failed to load bookings'); return res.json(); })
+      .then(data => setBookings(Array.isArray(data) ? data : []))
+      .catch(err => setBookingsError(err.message))
+      .finally(() => setBookingsLoading(false));
+  }, [activeSection]);
+
   const handleAvatar = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -45,7 +62,7 @@ export default function AccountPage() {
     const formData = new FormData();
     formData.append('avatar', file);
     try {
-      const res  = await fetch('http://localhost:4000/api/profile/me/avatar', { method: 'PATCH', credentials: 'include', body: formData });
+      const res  = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me/avatar`, { method: 'PATCH', credentials: 'include', body: formData });
       const data = await res.json();
       if (!res.ok) { setAvatarMsg({ type: 'error', text: data.message }); return; }
       setProfile(prev => ({ ...prev, avatarUrl: data.avatarUrl }));
@@ -58,7 +75,7 @@ export default function AccountPage() {
   const handleName = async (e) => {
     e.preventDefault(); setNameLoading(true);
     try {
-      const res  = await fetch('http://localhost:4000/api/profile/me/name', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(nameForm) });
+      const res  = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me/name`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(nameForm) });
       const data = await res.json();
       if (!res.ok) { setNameMsg({ type: 'error', text: data.message }); return; }
       setProfile(prev => ({ ...prev, fullName: data.fullName }));
@@ -71,7 +88,7 @@ export default function AccountPage() {
   const handleEmail = async (e) => {
     e.preventDefault(); setEmailLoading(true);
     try {
-      const res  = await fetch('http://localhost:4000/api/profile/me/email', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(emailForm) });
+      const res  = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me/email`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(emailForm) });
       const data = await res.json();
       if (!res.ok) { setEmailMsg({ type: 'error', text: data.message }); return; }
       setProfile(prev => ({ ...prev, email: data.email }));
@@ -87,7 +104,7 @@ export default function AccountPage() {
     if (passForm.newPassword !== passForm.confirmPassword) { setPassMsg({ type: 'error', text: 'Passwords do not match' }); return; }
     setPassLoading(true);
     try {
-      const res  = await fetch('http://localhost:4000/api/profile/me/password', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(passForm) });
+      const res  = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me/password`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(passForm) });
       const data = await res.json();
       if (!res.ok) { setPassMsg({ type: 'error', text: data.message }); return; }
       setPassMsg({ type: 'success', text: 'Password updated successfully' });
@@ -101,7 +118,7 @@ export default function AccountPage() {
     if (!confirm('Are you absolutely sure? This cannot be undone.')) return;
     setDeleteLoading(true);
     try {
-      const res  = await fetch('http://localhost:4000/api/profile/me', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(deleteForm) });
+      const res  = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(deleteForm) });
       const data = await res.json();
       if (!res.ok) { setDeleteMsg({ type: 'error', text: data.message }); return; }
       window.location.href = '/';
@@ -111,18 +128,31 @@ export default function AccountPage() {
   const displayName = profile?.fullName ?? user?.fullName ?? 'Member';
   const avatarUrl   = profile?.avatarUrl ?? user?.avatarUrl ?? null;
 
-  // ── Style tokens ──────────────────────────────────────────────────────────
+  // ── Style tokens ──
   const IC  = "w-full px-5 py-3.5 bg-white/70 backdrop-blur-sm border border-[#C87D87]/30 focus:border-[#C87D87] focus:ring-2 focus:ring-[#C87D87]/15 focus:outline-none font-['Cormorant_Garamond',serif] italic text-base text-[#3a3027] placeholder:text-[#7a6a5a]/55 transition-all duration-300 rounded-xl";
   const LC  = "font-['Cormorant_Garamond',serif] text-sm tracking-[0.18em] uppercase text-[#5a4a3a] block mb-2 font-semibold";
   const BTN = "font-['Cormorant_Garamond',serif] text-sm tracking-[0.22em] uppercase text-[#FBEAD6] bg-[#6B7556] px-10 py-3.5 rounded-xl hover:bg-[#4a5240] active:scale-[0.98] transition-all duration-300 disabled:opacity-40 inline-block cursor-pointer font-semibold shadow-[0_6px_20px_rgba(107,117,86,0.30)] hover:shadow-[0_10px_28px_rgba(107,117,86,0.38)] hover:-translate-y-0.5";
 
   const sideNav = [
-    { id: 'personal', icon: '✦', label: 'Personal Details',    sub: 'Name & email address'      },
-    { id: 'security', icon: '⚿', label: 'Password & Security', sub: 'Change your password'       },
-    { id: 'danger',   icon: '✕', label: 'Delete Account',      sub: 'Permanently remove account' },
+    { id: 'personal',  icon: '✦', label: 'Personal Details',    sub: 'Name & email address'      },
+    { id: 'bookings',  icon: '◈', label: 'My Bookings',         sub: 'Reservations & status'     },
+    { id: 'security',  icon: '⚿', label: 'Password & Security', sub: 'Change your password'      },
+    { id: 'danger',    icon: '✕', label: 'Delete Account',      sub: 'Permanently remove account'},
   ];
 
-  // ── Shared card ───────────────────────────────────────────────────────────
+  // ── Booking status config ──
+  const statusConfig = {
+    pending:   { label: 'Pending',   bg: 'bg-amber-50',   border: 'border-amber-300/60',  text: 'text-amber-600',  dot: 'bg-amber-400',  icon: '⏳' },
+    confirmed: { label: 'Confirmed', bg: 'bg-green-50',   border: 'border-green-300/60',  text: 'text-green-600',  dot: 'bg-green-400',  icon: '✓'  },
+    done:      { label: 'Completed', bg: 'bg-[#6B7556]/8', border: 'border-[#6B7556]/30', text: 'text-[#6B7556]',  dot: 'bg-[#6B7556]',  icon: '★'  },
+    cancelled: { label: 'Cancelled', bg: 'bg-red-50',     border: 'border-red-300/60',    text: 'text-red-500',    dot: 'bg-red-400',    icon: '✕'  },
+    rejected:  { label: 'Rejected',  bg: 'bg-red-50',     border: 'border-red-300/60',    text: 'text-red-500',    dot: 'bg-red-400',    icon: '✕'  },
+  };
+
+  const getStatus = (status) =>
+    statusConfig[status?.toLowerCase()] ?? { label: status ?? 'Unknown', bg: 'bg-gray-50', border: 'border-gray-300/60', text: 'text-gray-500', dot: 'bg-gray-400', icon: '?' };
+
+  // ── Shared card ──
   const FormCard = ({ children, danger = false }) => (
     <div className={`relative rounded-2xl overflow-hidden transition-all duration-300
       hover:-translate-y-1 hover:shadow-[0_28px_56px_rgba(58,48,39,0.14)]
@@ -130,16 +160,13 @@ export default function AccountPage() {
         ? 'bg-[#FBEAD6]/95 border border-red-300/60 shadow-[0_4px_16px_rgba(58,48,39,0.08)]'
         : 'bg-[#FBEAD6]/95 border border-[#C87D87]/20 shadow-[0_4px_16px_rgba(58,48,39,0.08)]'
       }`}>
-      {/* double ring */}
       <div className={`absolute inset-0 rounded-2xl border pointer-events-none ${danger ? 'border-red-200/40' : 'border-[#C87D87]/10'}`}/>
       <div className={`absolute inset-[5px] rounded-xl border pointer-events-none ${danger ? 'border-red-200/20' : 'border-[#C87D87]/6'}`}/>
-      {/* top shimmer */}
       <div className={`absolute top-0 left-0 w-full h-[2px] ${danger ? 'bg-gradient-to-r from-transparent via-red-400 to-transparent' : 'bg-gradient-to-r from-transparent via-[#C87D87] to-transparent'}`}/>
       {children}
     </div>
   );
 
-  // ── Section header ────────────────────────────────────────────────────────
   const SectionHeader = ({ eyebrow, title, danger = false }) => (
     <div className="mb-7">
       <div className="flex items-center gap-3 mb-2">
@@ -155,7 +182,6 @@ export default function AccountPage() {
     </div>
   );
 
-  // ── Feedback message ──────────────────────────────────────────────────────
   const Msg = ({ msg }) => msg.text ? (
     <p className={`font-['Cormorant_Garamond',serif] italic text-base mb-5 flex items-center gap-2 ${
       msg.type === 'success' ? 'text-[#6B7556]' : 'text-[#C87D87]'
@@ -167,7 +193,6 @@ export default function AccountPage() {
     </p>
   ) : null;
 
-  // ── Loading ───────────────────────────────────────────────────────────────
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center"
       style={{ background:'linear-gradient(135deg,#6B7556 0%,#5a6347 100%)' }}>
@@ -180,7 +205,6 @@ export default function AccountPage() {
     </div>
   );
 
-  // ── Error ─────────────────────────────────────────────────────────────────
   if (error) return (
     <div className="min-h-screen flex items-center justify-center"
       style={{ background:'linear-gradient(135deg,#6B7556 0%,#5a6347 100%)' }}>
@@ -188,7 +212,6 @@ export default function AccountPage() {
     </div>
   );
 
-  // ── Main ──────────────────────────────────────────────────────────────────
   return (
     <>
       <style>{`
@@ -200,7 +223,6 @@ export default function AccountPage() {
         @keyframes rotateSlow{ from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
         @keyframes auraPulse { 0%,100%{opacity:.55;filter:blur(8px)} 50%{opacity:.85;filter:blur(14px)} }
         @keyframes float     { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-
         input:-webkit-autofill {
           -webkit-box-shadow: 0 0 0px 1000px rgba(255,255,255,0.7) inset;
           -webkit-text-fill-color: #3a3027;
@@ -271,23 +293,19 @@ export default function AccountPage() {
             <aside className="w-80 flex-shrink-0 sticky top-8 space-y-4"
               style={{ animation:'fadeUp .5s cubic-bezier(.4,0,.2,1) .1s both' }}>
 
-              {/* ── Profile card ── */}
+              {/* Profile card */}
               <div className="relative rounded-2xl overflow-hidden bg-[#FBEAD6]/95 border border-[#C87D87]/22
                 shadow-[0_8px_32px_rgba(58,48,39,0.15)]">
-                {/* double ring */}
                 <div className="absolute inset-0 rounded-2xl border border-[#C87D87]/10 pointer-events-none"/>
                 <div className="absolute inset-[5px] rounded-xl border border-[#C87D87]/6 pointer-events-none"/>
-                {/* shimmer top */}
                 <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#C87D87] to-transparent"/>
 
-                {/* avatar zone */}
                 <div className="px-8 pt-10 pb-7 text-center relative">
                   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(200,125,135,0.07)_0%,transparent_70%)] pointer-events-none rounded-2xl"/>
-
                   <div className="relative inline-block mb-4">
                     <label htmlFor="avatar-upload" className="cursor-pointer group/av block">
                       {avatarUrl ? (
-                        <img src={`http://localhost:4000${avatarUrl}`} alt="avatar"
+                        <img src={`${process.env.NEXT_PUBLIC_API_URL}${avatarUrl}`} alt="avatar"
                           className="w-24 h-24 rounded-full object-cover ring-4 ring-[#C87D87]/25 shadow-xl mx-auto transition-all duration-300 group-hover/av:opacity-70"/>
                       ) : (
                         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#C87D87] to-[#6B7556] flex items-center justify-center text-[#FBEAD6] font-['Playfair_Display',serif] font-bold text-4xl mx-auto ring-4 ring-[#C87D87]/20 shadow-xl transition-all duration-300 group-hover/av:opacity-70">
@@ -309,7 +327,6 @@ export default function AccountPage() {
                     </label>
                     <input id="avatar-upload" type="file" accept="image/jpeg,image/png,image/webp"
                       className="hidden" onChange={handleAvatar} disabled={avatarLoading}/>
-                    {/* green dot */}
                     <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#6B7556] border-2 border-[#FBEAD6] flex items-center justify-center shadow-md pointer-events-none">
                       <span className="text-[#FBEAD6] text-[0.42rem]">✦</span>
                     </div>
@@ -344,7 +361,6 @@ export default function AccountPage() {
                   </p>
                 </div>
 
-                {/* info rows */}
                 <div className="divide-y divide-[#C87D87]/12 border-t border-[#C87D87]/18">
                   {[
                     {
@@ -388,19 +404,17 @@ export default function AccountPage() {
                 </div>
               </div>
 
-              {/* ── Nav card ── */}
+              {/* Nav card */}
               <div className="relative rounded-2xl overflow-hidden bg-[#FBEAD6]/95 border border-[#C87D87]/22
                 shadow-[0_4px_16px_rgba(58,48,39,0.10)]">
                 <div className="absolute inset-0 rounded-2xl border border-[#C87D87]/10 pointer-events-none"/>
                 <div className="absolute inset-[5px] rounded-xl border border-[#C87D87]/6 pointer-events-none"/>
                 <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#C87D87] to-transparent"/>
-
                 <div className="px-6 py-4 border-b border-[#C87D87]/15">
                   <p className="font-['Cormorant_Garamond',serif] text-xs tracking-[0.3em] uppercase text-[#7a6a5a] font-semibold">
                     Settings
                   </p>
                 </div>
-
                 <div className="divide-y divide-[#C87D87]/8 p-2">
                   {sideNav.map(item => (
                     <button
@@ -413,13 +427,11 @@ export default function AccountPage() {
                             : 'bg-[#6B7556]/10 shadow-sm'
                           : 'hover:bg-[#C87D87]/6'
                       }`}>
-                      {/* active left accent */}
                       {activeSection === item.id && (
                         <div className={`absolute left-0 top-3 bottom-3 w-[3px] rounded-full ${
                           item.id === 'danger' ? 'bg-red-400' : 'bg-[#6B7556]'
                         }`}/>
                       )}
-                      {/* icon */}
                       <div className={`w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-xl border text-sm transition-all duration-300 ${
                         activeSection === item.id
                           ? item.id === 'danger'
@@ -446,7 +458,6 @@ export default function AccountPage() {
                   ))}
                 </div>
               </div>
-
             </aside>
 
             {/* ════ CONTENT ════ */}
@@ -456,8 +467,6 @@ export default function AccountPage() {
               {activeSection === 'personal' && (
                 <div className="pt-4 space-y-5" style={{ animation:'fadeIn .3s ease forwards' }}>
                   <SectionHeader eyebrow="Account Settings" title="Personal Details"/>
-
-                  {/* Name */}
                   <FormCard>
                     <form onSubmit={handleName} className="p-8">
                       <div className="flex items-center gap-3 mb-1">
@@ -467,21 +476,15 @@ export default function AccountPage() {
                       <h3 className="font-['Playfair_Display',serif] italic text-2xl text-[#3a3027] mb-1">Full Name</h3>
                       <div className="w-8 h-[1.5px] bg-[#C87D87] mb-7"/>
                       <label className={LC}>Name</label>
-                      <input
-                        type="text"
-                        value={nameForm.fullName}
+                      <input type="text" value={nameForm.fullName}
                         onChange={e => setNameForm({ fullName: e.target.value })}
-                        placeholder="Your full name"
-                        className={`${IC} mb-6`}
-                      />
+                        placeholder="Your full name" className={`${IC} mb-6`}/>
                       <Msg msg={nameMsg}/>
                       <button type="submit" disabled={nameLoading} className={BTN}>
                         {nameLoading ? 'Saving…' : 'Save Name'}
                       </button>
                     </form>
                   </FormCard>
-
-                  {/* Email */}
                   <FormCard>
                     <form onSubmit={handleEmail} className="p-8">
                       <div className="flex items-center gap-3 mb-1">
@@ -491,21 +494,13 @@ export default function AccountPage() {
                       <h3 className="font-['Playfair_Display',serif] italic text-2xl text-[#3a3027] mb-1">Email Address</h3>
                       <div className="w-8 h-[1.5px] bg-[#C87D87] mb-7"/>
                       <label className={LC}>New Email</label>
-                      <input
-                        type="email"
-                        value={emailForm.email}
+                      <input type="email" value={emailForm.email}
                         onChange={e => setEmailForm(f => ({ ...f, email: e.target.value }))}
-                        placeholder="your@email.com"
-                        className={`${IC} mb-5`}
-                      />
+                        placeholder="your@email.com" className={`${IC} mb-5`}/>
                       <label className={LC}>Current Password</label>
-                      <input
-                        type="password"
-                        value={emailForm.currentPassword}
+                      <input type="password" value={emailForm.currentPassword}
                         onChange={e => setEmailForm(f => ({ ...f, currentPassword: e.target.value }))}
-                        placeholder="Confirm with your password"
-                        className={`${IC} mb-6`}
-                      />
+                        placeholder="Confirm with your password" className={`${IC} mb-6`}/>
                       <Msg msg={emailMsg}/>
                       <button type="submit" disabled={emailLoading} className={BTN}>
                         {emailLoading ? 'Saving…' : 'Save Email'}
@@ -515,11 +510,186 @@ export default function AccountPage() {
                 </div>
               )}
 
+              {/* ── BOOKINGS ── */}
+              {activeSection === 'bookings' && (
+                <div className="pt-4 space-y-5" style={{ animation:'fadeIn .3s ease forwards' }}>
+                  <SectionHeader eyebrow="Your Reservations" title="My Bookings"/>
+
+                  {bookingsLoading && (
+                    <div className="flex flex-col items-center gap-4 py-20">
+                      <div className="w-10 h-10 rounded-full border-2 border-[#C87D87]/40 border-t-[#C87D87] animate-spin"/>
+                      <p className="font-['Cormorant_Garamond',serif] italic text-[#FBEAD6]/60 text-sm tracking-widest">
+                        Loading your bookings…
+                      </p>
+                    </div>
+                  )}
+
+                  {bookingsError && (
+                    <FormCard>
+                      <div className="p-8 text-center">
+                        <p className="font-['Cormorant_Garamond',serif] italic text-[#C87D87] text-base">{bookingsError}</p>
+                      </div>
+                    </FormCard>
+                  )}
+
+                  {!bookingsLoading && !bookingsError && bookings.length === 0 && (
+                    <FormCard>
+                      <div className="p-12 text-center">
+                        <div className="w-16 h-16 rounded-full bg-[#C87D87]/10 border border-[#C87D87]/20 flex items-center justify-center mx-auto mb-5">
+                          <span className="text-[#C87D87]/50 text-2xl">◈</span>
+                        </div>
+                        <h3 className="font-['Playfair_Display',serif] italic text-xl text-[#3a3027] mb-2">No bookings yet</h3>
+                        <p className="font-['Cormorant_Garamond',serif] italic text-[#7a6a5a] text-base mb-6">
+                          You haven't made any reservations yet. Plan your first gathering!
+                        </p>
+                        <Link href="/gatherings"
+                          className="font-['Cormorant_Garamond',serif] text-sm tracking-[0.22em] uppercase text-[#FBEAD6] bg-[#C87D87] px-8 py-3 rounded-xl hover:bg-[#6B7556] transition-all duration-300 inline-block shadow-[0_6px_20px_rgba(200,125,135,0.30)]">
+                          Plan a Gathering
+                        </Link>
+                      </div>
+                    </FormCard>
+                  )}
+
+                  {!bookingsLoading && !bookingsError && bookings.length > 0 && (
+                    <>
+                      {/* Summary pills */}
+                      <div className="flex flex-wrap gap-3 mb-2">
+                        {Object.entries(
+                          bookings.reduce((acc, b) => {
+                            const key = b.status?.toLowerCase() ?? 'unknown';
+                            acc[key] = (acc[key] ?? 0) + 1;
+                            return acc;
+                          }, {})
+                        ).map(([status, count]) => {
+                          const s = getStatus(status);
+                          return (
+                            <div key={status} className={`flex items-center gap-2 px-4 py-2 rounded-xl border ${s.bg} ${s.border}`}>
+                              <span className={`w-2 h-2 rounded-full ${s.dot}`}/>
+                              <span className={`font-['Cormorant_Garamond',serif] text-sm font-semibold ${s.text}`}>
+                                {count} {s.label}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Booking cards */}
+                      <div className="space-y-4">
+                        {bookings.map((booking, i) => {
+                          const s = getStatus(booking.status);
+                          return (
+                            <div key={booking.id}
+                              className={`relative rounded-2xl overflow-hidden border ${s.bg} ${s.border} shadow-[0_4px_16px_rgba(58,48,39,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(58,48,39,0.14)]`}
+                              style={{ animation:`fadeIn .3s ease ${i * 0.06}s both` }}>
+                              {/* top shimmer */}
+                              <div className={`absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent ${s.dot.replace('bg-','via-')} to-transparent`}/>
+
+                              <div className="p-6">
+                                {/* Header row */}
+                                <div className="flex items-start justify-between gap-4 mb-4">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`w-10 h-10 rounded-xl border ${s.border} ${s.bg} flex items-center justify-center flex-shrink-0`}>
+                                      <span className={`text-base ${s.text}`}>{s.icon}</span>
+                                    </div>
+                                    <div>
+                                      <h3 className="font-['Playfair_Display',serif] italic text-lg text-[#3a3027] leading-tight">
+                                        {booking.activity || booking.activityType || 'Activity'}
+                                      </h3>
+                                      <p className="font-['Cormorant_Garamond',serif] text-xs text-[#7a6a5a] tracking-widest mt-0.5">
+                                        #{String(booking.id).padStart(5, '0')}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  {/* Status badge */}
+                                  <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold tracking-[0.15em] uppercase font-['Cormorant_Garamond',serif] flex-shrink-0 ${s.bg} ${s.border} ${s.text}`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`}/>
+                                    {s.label}
+                                  </span>
+                                </div>
+
+                                {/* Details grid */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                  {[
+                                    { icon: '📅', label: 'Date',      value: booking.date ? new Date(booking.date).toLocaleDateString('en-US',{day:'numeric',month:'long',year:'numeric'}) : '—' },
+                                    { icon: '🕐', label: 'Time',      value: booking.timeSlot || '—' },
+                                    { icon: '👥', label: 'Guests',    value: `${booking.participants || 1} person${(booking.participants || 1) > 1 ? 's' : ''}` },
+                                    { icon: '📞', label: 'Contact',   value: booking.preferredContact || '—' },
+                                  ].map(({ icon, label, value }) => (
+                                    <div key={label} className="bg-white/50 rounded-xl px-4 py-3 border border-[#C87D87]/10">
+                                      <p className="font-['Cormorant_Garamond',serif] text-xs tracking-[0.18em] uppercase text-[#7a6a5a] mb-1">{icon} {label}</p>
+                                      <p className="font-['Cormorant_Garamond',serif] italic text-sm text-[#3a3027] font-semibold">{value}</p>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                {/* Optional notes */}
+                                {(booking.specialRequests || booking.allergies) && (
+                                  <div className="mt-3 px-4 py-3 bg-white/40 rounded-xl border border-[#C87D87]/10">
+                                    {booking.specialRequests && (
+                                      <p className="font-['Cormorant_Garamond',serif] italic text-sm text-[#5a4a3a]">
+                                        <span className="not-italic font-semibold text-xs tracking-widest uppercase text-[#7a6a5a]">Requests: </span>
+                                        {booking.specialRequests}
+                                      </p>
+                                    )}
+                                    {booking.allergies && (
+                                      <p className="font-['Cormorant_Garamond',serif] italic text-sm text-[#5a4a3a] mt-1">
+                                        <span className="not-italic font-semibold text-xs tracking-widest uppercase text-[#7a6a5a]">Allergies: </span>
+                                        {booking.allergies}
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
+
+                                {/* Footer: date booked */}
+                                <div className="mt-4 pt-3 border-t border-[#C87D87]/12 flex items-center justify-between">
+                                  <p className="font-['Cormorant_Garamond',serif] italic text-xs text-[#7a6a5a]">
+                                    Booked on {new Date(booking.createdAt).toLocaleDateString('en-US',{day:'numeric',month:'long',year:'numeric'})}
+                                  </p>
+                                  {booking.status?.toLowerCase() === 'pending' && (
+                                    <p className="font-['Cormorant_Garamond',serif] italic text-xs text-amber-500 flex items-center gap-1.5">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse inline-block"/>
+                                      Awaiting confirmation
+                                    </p>
+                                  )}
+                                 {/* ── Payment footer ── */}
+{booking.status?.toLowerCase() === 'confirmed' && (
+  booking.paymentStatus === 'PAID' ? (
+    // ✅ Already paid badge
+    <div className="inline-flex items-center gap-2 font-['Cormorant_Garamond',serif] text-[0.65rem] tracking-[0.2em] uppercase text-[#6B7556] bg-[#6B7556]/10 border border-[#6B7556]/30 px-4 py-2 rounded-lg">
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      Avance réglée · {booking.advancePaid} MAD
+    </div>
+  ) : (
+    // 💳 Pay now button
+    <Link
+      href={`/checkout?bookingId=${booking.id}`}
+      className="inline-flex items-center gap-2 font-['Cormorant_Garamond',serif] text-[0.65rem] tracking-[0.2em] uppercase text-white bg-[#6B7556] px-4 py-2 rounded-lg hover:bg-[#4a5240] transition-all duration-300 shadow-[0_4px_12px_rgba(107,117,86,0.30)]">
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
+      </svg>
+      Procéder au paiement
+    </Link>
+  )
+)}
+
+
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
               {/* ── SECURITY ── */}
               {activeSection === 'security' && (
                 <div className="pt-4" style={{ animation:'fadeIn .3s ease forwards' }}>
                   <SectionHeader eyebrow="Account Settings" title="Password & Security"/>
-
                   <FormCard>
                     <form onSubmit={handlePassword} className="p-8">
                       <div className="flex items-center gap-3 mb-1">
@@ -536,13 +706,9 @@ export default function AccountPage() {
                         ].map(({lbl,key,ph}) => (
                           <div key={key}>
                             <label className={LC}>{lbl}</label>
-                            <input
-                              type="password"
-                              value={passForm[key]}
+                            <input type="password" value={passForm[key]}
                               onChange={e => setPassForm(f => ({ ...f, [key]: e.target.value }))}
-                              placeholder={ph}
-                              className={IC}
-                            />
+                              placeholder={ph} className={IC}/>
                           </div>
                         ))}
                       </div>
@@ -559,8 +725,6 @@ export default function AccountPage() {
               {activeSection === 'danger' && (
                 <div className="pt-4 space-y-5" style={{ animation:'fadeIn .3s ease forwards' }}>
                   <SectionHeader eyebrow="Danger Zone" title="Delete Account" danger/>
-
-                  {/* warning */}
                   <FormCard danger>
                     <div className="p-7">
                       <div className="flex items-start gap-4">
@@ -580,8 +744,6 @@ export default function AccountPage() {
                       </div>
                     </div>
                   </FormCard>
-
-                  {/* delete form */}
                   <FormCard danger>
                     <form onSubmit={handleDelete} className="p-8">
                       <h3 className="font-['Playfair_Display',serif] italic text-2xl text-red-500 mb-1">Confirm Deletion</h3>
@@ -589,24 +751,18 @@ export default function AccountPage() {
                       <label className="font-['Cormorant_Garamond',serif] text-sm tracking-[0.18em] uppercase text-[#5a4a3a] block mb-2 font-semibold">
                         Enter your password to confirm
                       </label>
-                      <input
-                        type="password"
-                        value={deleteForm.password}
+                      <input type="password" value={deleteForm.password}
                         onChange={e => setDeleteForm({ password: e.target.value })}
                         placeholder="Your password"
-                        className="w-full px-5 py-3.5 bg-white/70 backdrop-blur-sm border border-red-300/50 focus:border-red-400 focus:ring-2 focus:ring-red-200 focus:outline-none font-['Cormorant_Garamond',serif] italic text-base text-[#3a3027] placeholder:text-[#7a6a5a]/50 transition-all duration-300 rounded-xl mb-6"
-                      />
+                        className="w-full px-5 py-3.5 bg-white/70 backdrop-blur-sm border border-red-300/50 focus:border-red-400 focus:ring-2 focus:ring-red-200 focus:outline-none font-['Cormorant_Garamond',serif] italic text-base text-[#3a3027] placeholder:text-[#7a6a5a]/50 transition-all duration-300 rounded-xl mb-6"/>
                       {deleteMsg.text && (
                         <p className="font-['Cormorant_Garamond',serif] italic text-base mb-5 text-red-500 flex items-center gap-2">
                           <span className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-white text-xs">✕</span>
                           {deleteMsg.text}
                         </p>
                       )}
-                      <button
-                        type="submit"
-                        disabled={deleteLoading}
-                        className="font-['Cormorant_Garamond',serif] text-sm tracking-[0.22em] uppercase text-white bg-red-500 px-10 py-3.5 rounded-xl hover:bg-red-600 active:scale-[0.98] transition-all duration-300 disabled:opacity-40 cursor-pointer font-semibold shadow-[0_6px_20px_rgba(239,68,68,0.28)] hover:shadow-[0_10px_28px_rgba(239,68,68,0.35)] hover:-translate-y-0.5"
-                      >
+                      <button type="submit" disabled={deleteLoading}
+                        className="font-['Cormorant_Garamond',serif] text-sm tracking-[0.22em] uppercase text-white bg-red-500 px-10 py-3.5 rounded-xl hover:bg-red-600 active:scale-[0.98] transition-all duration-300 disabled:opacity-40 cursor-pointer font-semibold shadow-[0_6px_20px_rgba(239,68,68,0.28)] hover:shadow-[0_10px_28px_rgba(239,68,68,0.35)] hover:-translate-y-0.5">
                         {deleteLoading ? 'Deleting…' : 'Delete My Account'}
                       </button>
                     </form>

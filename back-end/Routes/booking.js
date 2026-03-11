@@ -209,11 +209,21 @@ router.patch('/:id/status', isAdmin, async (req, res) => {
       }
     }
     if (status === 'completed') {
-  let targetUserId = booking.userId;
+  let targetUserId = booking.userId; // ← booking is already updated here, this is fine
 
   if (!targetUserId && booking.email) {
-    const userByEmail = await prisma.user.findUnique({ where: { email: booking.email } });
+    const userByEmail = await prisma.user.findUnique({
+      where: { email: booking.email },
+    });
     targetUserId = userByEmail?.id ?? null;
+
+    // ✅ also link user to booking if found (same as confirmed block)
+    if (targetUserId) {
+      await prisma.booking.update({
+        where: { id: bookingId },
+        data:  { userId: targetUserId },
+      });
+    }
   }
 
   if (targetUserId) {
@@ -221,15 +231,18 @@ router.patch('/:id/status', isAdmin, async (req, res) => {
       data: {
         userId:    targetUserId,
         type:      'REVIEW_REQUEST',
-        title:     'Comment s\'est passé votre expérience ? ⭐',
-        message:   `Votre activité "${booking.activity || 'gathering'}" est terminée ! Partagez votre avis pour aider la communauté.`,
+        title:     "✨ How was your experience?",
+        message:   `Your "${booking.activity || 'gathering'}" is complete! Share your thoughts and help our community grow.`,
         bookingId: booking.id,
         read:      false,
       },
     });
     console.log(`✅ Review-request notification sent to userId: ${targetUserId}`);
+  } else {
+    console.warn(`⚠️ No user found for booking ${bookingId} — review notification not sent`);
   }
 }
+
 
     res.json(booking);
   } catch (err) {

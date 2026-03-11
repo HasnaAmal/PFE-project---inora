@@ -37,14 +37,9 @@ router.patch('/read-all', auth, async (req, res) => {
 
 // PATCH /api/notifications/:id/read
 router.patch('/:id/read', auth, async (req, res) => {
-  const notifId = parseInt(req.params.id);
-
-  if (isNaN(notifId)) {
-    return res.status(400).json({ message: 'Invalid notification ID' });
-  }
+  const notifId = req.params.id; // ✅ string cuid, no parseInt
 
   try {
-    // ✅ Make sure the notification belongs to the logged-in user
     const existing = await prisma.notification.findFirst({
       where: { id: notifId, userId: req.user.id },
     });
@@ -55,7 +50,7 @@ router.patch('/:id/read', auth, async (req, res) => {
 
     const notif = await prisma.notification.update({
       where: { id: notifId },
-      data: { read: true },
+      data:  { read: true },
     });
 
     res.json(notif);
@@ -64,5 +59,6 @@ router.patch('/:id/read', auth, async (req, res) => {
     res.status(500).json({ message: 'Failed to update notification' });
   }
 });
+
 
 export default router;

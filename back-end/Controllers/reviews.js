@@ -5,7 +5,7 @@ export const getApprovedReviews = async (req, res) => {
   try {
     const reviews = await prisma.review.findMany({
       where:   { approved: true },
-      include: { user: { select: { fullName: true, image: true } } },
+      include: { user: { select: { fullName: true, avatarUrl: true } } }, // ✅
       orderBy: { createdAt: 'desc' },
       take: 12,
     });
@@ -20,7 +20,7 @@ export const getPendingReviews = async (req, res) => {
   try {
     const reviews = await prisma.review.findMany({
       where:   { approved: false },
-      include: { user: { select: { fullName: true, image: true } } },
+      include: { user: { select: { fullName: true, avatarUrl: true } } }, // ✅
       orderBy: { createdAt: 'desc' },
     });
     res.json(reviews);
@@ -29,11 +29,10 @@ export const getPendingReviews = async (req, res) => {
   }
 };
 
-// ── Admin → approve → auto shows on homepage
+// ── Admin → approve
 export const approveReview = async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ message: 'Invalid ID' });
+    const { id } = req.params; // ✅ string cuid, no parseInt
 
     const review = await prisma.review.update({
       where: { id },
@@ -45,11 +44,10 @@ export const approveReview = async (req, res) => {
   }
 };
 
-// ── Admin → delete (pending or approved)
+// ── Admin → delete
 export const deleteReview = async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ message: 'Invalid ID' });
+    const { id } = req.params; // ✅ string cuid, no parseInt
 
     await prisma.review.delete({ where: { id } });
     res.json({ message: 'Deleted' });
@@ -58,7 +56,7 @@ export const deleteReview = async (req, res) => {
   }
 };
 
-// ── User → submit review (requires login, triggered from notification)
+// ── User → submit review
 export const createReview = async (req, res) => {
   try {
     if (!req.user?.id) return res.status(401).json({ message: 'Login required' });
@@ -70,7 +68,6 @@ export const createReview = async (req, res) => {
     if (!comment || comment.trim().length < 10)
       return res.status(400).json({ message: 'Comment must be at least 10 characters' });
 
-    // prevent duplicate review for the same booking
     if (bookingId) {
       const existing = await prisma.review.findFirst({
         where: { userId: req.user.id, bookingId: parseInt(bookingId) },
@@ -86,7 +83,7 @@ export const createReview = async (req, res) => {
         bookingId: bookingId ? parseInt(bookingId) : null,
         approved:  false,
       },
-      include: { user: { select: { fullName: true, image: true } } },
+      include: { user: { select: { fullName: true, avatarUrl: true } } }, // ✅
     });
 
     res.status(201).json({ message: 'Submitted for approval!', review });

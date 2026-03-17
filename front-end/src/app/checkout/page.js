@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
@@ -19,7 +19,7 @@ const ADVANCE_AMOUNT   = 250;
 
 const stripeStyle = {
   base: {
-    fontFamily: "'Cormorant Garamond', serif",
+    fontFamily: "Cormorant Garamond, serif",
     fontStyle:  'italic',
     fontSize:   '15px',
     color:      '#3a3027',
@@ -120,16 +120,15 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
 
       {/* Header */}
       <div className="px-8 pt-8 pb-6 border-b border-[#C87D87]/10 relative">
-        {/* corner ornaments */}
         <span className="absolute top-4 left-8 w-4 h-4 border-t border-l border-[#C87D87]/25 pointer-events-none"/>
         <span className="absolute top-4 right-8 w-4 h-4 border-t border-r border-[#C87D87]/25 pointer-events-none"/>
-        <p className="font-['Cormorant_Garamond',serif] italic text-[#C87D87]/60 text-[0.58rem] tracking-[0.4em] uppercase mb-2 text-center">
+        <p className="font-[Cormorant_Garamond,serif] italic text-[#C87D87]/60 text-[0.58rem] tracking-[0.4em] uppercase mb-2 text-center">
           ✦ &nbsp; Étape 2 sur 3 &nbsp; ✦
         </p>
-        <h1 className="font-['Playfair_Display',serif] italic text-[clamp(2rem,3vw,3rem)] text-[#3a3027] leading-none text-center">
+        <h1 className="font-[Playfair_Display,serif] italic text-[clamp(2rem,3vw,3rem)] text-[#3a3027] leading-none text-center">
           Paiement<span className="text-[#C87D87]">.</span>
         </h1>
-        <p className="font-['Cormorant_Garamond',serif] italic text-[#7a6a5a]/55 text-sm mt-1.5 text-center">
+        <p className="font-[Cormorant_Garamond,serif] italic text-[#7a6a5a]/55 text-sm mt-1.5 text-center">
           Réglez votre avance pour confirmer votre place.
         </p>
       </div>
@@ -142,7 +141,7 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
             <span className="text-[#C87D87]/70 text-sm">◈</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-['Playfair_Display',serif] italic text-[#3a3027] text-base leading-tight truncate">
+            <p className="font-[Playfair_Display,serif] italic text-[#3a3027] text-base leading-tight truncate">
               {booking?.activity || 'Votre activité'}
             </p>
             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
@@ -151,15 +150,15 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
                 booking?.timeSlot,
                 `${participants} pers.`,
               ].filter(Boolean).map((v,i,arr)=>(
-                <span key={i} className="font-['Cormorant_Garamond',serif] italic text-[0.62rem] text-[#7a6a5a]/55">
+                <span key={i} className="font-[Cormorant_Garamond,serif] italic text-[0.62rem] text-[#7a6a5a]/55">
                   {v}{i < arr.length-1 && <span className="ml-2 text-[#C87D87]/30">·</span>}
                 </span>
               ))}
             </div>
           </div>
           <div className="text-right flex-shrink-0">
-            <p className="font-['Cormorant_Garamond',serif] text-[0.5rem] tracking-[0.18em] uppercase text-[#7a6a5a]/35 mb-0.5">Avance</p>
-            <p className="font-['Playfair_Display',serif] italic text-xl text-[#C87D87]">{ADVANCE_AMOUNT} MAD</p>
+            <p className="font-[Cormorant_Garamond,serif] text-[0.5rem] tracking-[0.18em] uppercase text-[#7a6a5a]/35 mb-0.5">Avance</p>
+            <p className="font-[Playfair_Display,serif] italic text-xl text-[#C87D87]">{ADVANCE_AMOUNT} MAD</p>
           </div>
         </div>
       </div>
@@ -188,11 +187,11 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
           <div className="flex justify-between items-end">
             <div>
               <p className="text-[0.42rem] tracking-widest uppercase text-[#FBEAD6]/20 mb-0.5">Titulaire</p>
-              <p className="font-['Cormorant_Garamond',serif] italic text-[#FBEAD6]/60 text-[0.7rem] tracking-wider uppercase">
+              <p className="font-[Cormorant_Garamond,serif] italic text-[#FBEAD6]/60 text-[0.7rem] tracking-wider uppercase">
                 {name || 'VOTRE NOM'}
               </p>
             </div>
-            <p className="font-['Cormorant_Garamond',serif] italic text-[#FBEAD6]/25 text-[0.58rem] tracking-widest">INORA PAY</p>
+            <p className="font-[Cormorant_Garamond,serif] italic text-[#FBEAD6]/25 text-[0.58rem] tracking-widest">INORA PAY</p>
           </div>
         </div>
       </div>
@@ -201,7 +200,7 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
       <div className="px-8 space-y-3.5 flex-1">
 
         <div>
-          <label className="block font-['Cormorant_Garamond',serif] text-[0.57rem] uppercase tracking-[0.18em] text-[#7a6a5a]/50 mb-1.5">
+          <label className="block font-[Cormorant_Garamond,serif] text-[0.57rem] uppercase tracking-[0.18em] text-[#7a6a5a]/50 mb-1.5">
             Numéro de carte
           </label>
           <div className={fieldWrap('number')}>
@@ -215,7 +214,7 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block font-['Cormorant_Garamond',serif] text-[0.57rem] uppercase tracking-[0.18em] text-[#7a6a5a]/50 mb-1.5">
+            <label className="block font-[Cormorant_Garamond,serif] text-[0.57rem] uppercase tracking-[0.18em] text-[#7a6a5a]/50 mb-1.5">
               Expiration
             </label>
             <div className={fieldWrap('expiry')}>
@@ -227,7 +226,7 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
             </div>
           </div>
           <div>
-            <label className="block font-['Cormorant_Garamond',serif] text-[0.57rem] uppercase tracking-[0.18em] text-[#7a6a5a]/50 mb-1.5">
+            <label className="block font-[Cormorant_Garamond,serif] text-[0.57rem] uppercase tracking-[0.18em] text-[#7a6a5a]/50 mb-1.5">
               CVC
             </label>
             <div className={fieldWrap('cvc')}>
@@ -241,7 +240,7 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
         </div>
 
         <div>
-          <label className="block font-['Cormorant_Garamond',serif] text-[0.57rem] uppercase tracking-[0.18em] text-[#7a6a5a]/50 mb-1.5">
+          <label className="block font-[Cormorant_Garamond,serif] text-[0.57rem] uppercase tracking-[0.18em] text-[#7a6a5a]/50 mb-1.5">
             Nom sur la carte
           </label>
           <input
@@ -251,7 +250,7 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
             onFocus={() => setFocused('name')}
             onBlur={()  => setFocused(null)}
             placeholder="Prénom NOM"
-            className={fieldWrap('name') + " w-full font-['Cormorant_Garamond',serif] italic text-base text-[#3a3027] placeholder-[#3a3027]/20 outline-none"}
+            className={fieldWrap('name') + " w-full font-[Cormorant_Garamond,serif] italic text-base text-[#3a3027] placeholder-[#3a3027]/20 outline-none"}
           />
         </div>
       </div>
@@ -260,23 +259,22 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
       {error && (
         <div className="mx-8 mt-4 px-4 py-3 rounded-xl bg-[#C87D87]/8 border border-[#C87D87]/22 flex items-center gap-2.5">
           <span className="text-[#C87D87] flex-shrink-0">⚠</span>
-          <p className="font-['Cormorant_Garamond',serif] italic text-[#C87D87] text-sm">{error}</p>
+          <p className="font-[Cormorant_Garamond,serif] italic text-[#C87D87] text-sm">{error}</p>
         </div>
       )}
 
       {/* Pay button */}
       <div className="px-8 pt-5 pb-8">
-        {/* Security bar */}
         <div className="flex items-center gap-2.5 mb-4 px-3.5 py-2.5 rounded-xl bg-[#6B7556]/6 border border-[#6B7556]/15">
           <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-[#6B7556]/55 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
           </svg>
-          <p className="font-['Cormorant_Garamond',serif] text-[0.57rem] tracking-[0.1em] uppercase text-[#6B7556]/60 flex-1">
+          <p className="font-[Cormorant_Garamond,serif] text-[0.57rem] tracking-[0.1em] uppercase text-[#6B7556]/60 flex-1">
             SSL 256-bit · Stripe sécurisé · Aucune donnée stockée
           </p>
           <div className="flex gap-1.5">
             {['VISA','MC','CB'].map(b=>(
-              <span key={b} className="font-['Cormorant_Garamond',serif] text-[0.46rem] uppercase text-[#7a6a5a]/35 border border-[#3a3027]/10 px-1.5 py-0.5 rounded-md">{b}</span>
+              <span key={b} className="font-[Cormorant_Garamond,serif] text-[0.46rem] uppercase text-[#7a6a5a]/35 border border-[#3a3027]/10 px-1.5 py-0.5 rounded-md">{b}</span>
             ))}
           </div>
         </div>
@@ -284,7 +282,7 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
         <button
           type="submit"
           disabled={paying || !stripe}
-          className="w-full relative overflow-hidden group rounded-2xl font-['Cormorant_Garamond',serif] text-sm tracking-[0.25em] uppercase text-[#FBEAD6] py-4 transition-all duration-500 flex items-center justify-center gap-3 disabled:opacity-30 disabled:cursor-not-allowed"
+          className="w-full relative overflow-hidden group rounded-2xl font-[Cormorant_Garamond,serif] text-sm tracking-[0.25em] uppercase text-[#FBEAD6] py-4 transition-all duration-500 flex items-center justify-center gap-3 disabled:opacity-30 disabled:cursor-not-allowed"
           style={{
             background: paying
               ? 'rgba(200,125,135,0.55)'
@@ -314,9 +312,9 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
 }
 
 // ════════════════════════════════════════
-//  PAGE WRAPPER
+//  CHECKOUT CONTENT (avec useSearchParams)
 // ════════════════════════════════════════
-export default function CheckoutPage() {
+function CheckoutContent() {
   const { user, loading } = useAuth();
   const searchParams = useSearchParams();
   const router       = useRouter();
@@ -352,7 +350,7 @@ export default function CheckoutPage() {
           <div className="absolute inset-0 rounded-full border border-[#C87D87]/20"/>
           <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#C87D87] animate-spin"/>
         </div>
-        <p className="font-['Cormorant_Garamond',serif] italic text-[#7a6a5a]/50 tracking-[0.35em] text-xs uppercase">Chargement…</p>
+        <p className="font-[Cormorant_Garamond,serif] italic text-[#7a6a5a]/50 tracking-[0.35em] text-xs uppercase">Chargement…</p>
       </div>
     </div>
   );
@@ -372,9 +370,9 @@ export default function CheckoutPage() {
         <div className="w-12 h-12 rounded-full bg-[#C87D87]/10 border border-[#C87D87]/25 flex items-center justify-center mx-auto mb-4">
           <span className="text-[#C87D87]">✕</span>
         </div>
-        <p className="font-['Cormorant_Garamond',serif] italic text-[#7a6a5a] text-base mb-6">{error}</p>
+        <p className="font-[Cormorant_Garamond,serif] italic text-[#7a6a5a] text-base mb-6">{error}</p>
         <Link href="/account"
-          className="font-['Cormorant_Garamond',serif] text-xs tracking-[0.2em] uppercase text-[#3a3027]/50 border border-[#3a3027]/15 px-6 py-2.5 rounded-xl hover:bg-[#3a3027]/5 transition-all inline-block">
+          className="font-[Cormorant_Garamond,serif] text-xs tracking-[0.2em] uppercase text-[#3a3027]/50 border border-[#3a3027]/15 px-6 py-2.5 rounded-xl hover:bg-[#3a3027]/5 transition-all inline-block">
           ← Retour
         </Link>
       </div>
@@ -391,14 +389,11 @@ export default function CheckoutPage() {
         @keyframes fadeUp  { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
       `}</style>
 
-      {/* Ornamental dots bg */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.03]"
         style={{backgroundImage:'radial-gradient(circle at 1px 1px,#3a3027 1px,transparent 0)',backgroundSize:'20px 20px'}}/>
 
       <div className="relative max-w-md w-full rounded-3xl overflow-hidden border border-[#C87D87]/18 bg-white/80 shadow-[0_24px_64px_rgba(58,48,39,0.12)]">
-        {/* top accent line */}
         <div className="h-1 w-full bg-gradient-to-r from-[#6B7556] via-[#C87D87] to-[#6B7556]"/>
-        {/* corner ornaments */}
         <span className="absolute top-6 left-6 w-5 h-5 border-t border-l border-[#C87D87]/25 pointer-events-none"/>
         <span className="absolute top-6 right-6 w-5 h-5 border-t border-r border-[#C87D87]/25 pointer-events-none"/>
         <span className="absolute bottom-6 left-6 w-5 h-5 border-b border-l border-[#C87D87]/25 pointer-events-none"/>
@@ -414,9 +409,9 @@ export default function CheckoutPage() {
                 style={{animation:'checkDraw .5s ease .45s forwards'}}/>
             </svg>
           </div>
-          <p className="font-['Cormorant_Garamond',serif] italic text-[#C87D87]/70 text-[0.6rem] tracking-[0.4em] uppercase mb-1"
+          <p className="font-[Cormorant_Garamond,serif] italic text-[#C87D87]/70 text-[0.6rem] tracking-[0.4em] uppercase mb-1"
             style={{animation:'fadeUp .4s ease .5s both'}}>Paiement confirmé</p>
-          <h2 className="font-['Playfair_Display',serif] italic text-4xl text-[#3a3027] mb-5"
+          <h2 className="font-[Playfair_Display,serif] italic text-4xl text-[#3a3027] mb-5"
             style={{animation:'fadeUp .4s ease .55s both'}}>Merci !</h2>
 
           <div className="rounded-2xl border border-[#3a3027]/8 divide-y divide-[#3a3027]/5 mb-6 text-left bg-[#FBEAD6]/40"
@@ -429,14 +424,14 @@ export default function CheckoutPage() {
               { l:'Reste sur place',v: `${remaining} MAD`,          c:'text-[#C87D87]', big:true },
             ].map(({l,v,c,big})=>(
               <div key={l} className="flex justify-between items-center px-5 py-3">
-                <span className="font-['Cormorant_Garamond',serif] text-[0.62rem] uppercase tracking-[0.15em] text-[#7a6a5a]/45">{l}</span>
-                <span className={`font-['Playfair_Display',serif] italic ${big?'text-xl':'text-base'} ${c}`}>{v}</span>
+                <span className="font-[Cormorant_Garamond,serif] text-[0.62rem] uppercase tracking-[0.15em] text-[#7a6a5a]/45">{l}</span>
+                <span className={`font-[Playfair_Display,serif] italic ${big?'text-xl':'text-base'} ${c}`}>{v}</span>
               </div>
             ))}
           </div>
 
           <Link href="/account"
-            className="inline-block w-full font-['Cormorant_Garamond',serif] text-xs tracking-[0.25em] uppercase text-[#FBEAD6] rounded-2xl py-3.5 hover:opacity-90 transition-all"
+            className="inline-block w-full font-[Cormorant_Garamond,serif] text-xs tracking-[0.25em] uppercase text-[#FBEAD6] rounded-2xl py-3.5 hover:opacity-90 transition-all"
             style={{animation:'fadeUp .4s ease .7s both',background:'linear-gradient(135deg,#C87D87,#b36d77)',boxShadow:'0 8px 24px rgba(200,125,135,0.35)'}}>
             Voir mes réservations →
           </Link>
@@ -457,55 +452,47 @@ export default function CheckoutPage() {
         .r-col { animation: fadeUp .5s cubic-bezier(.4,0,.2,1) .22s both }
       `}</style>
 
-      {/* Ornamental dot background — matches Navbar page style */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.025]"
         style={{backgroundImage:'radial-gradient(circle at 1px 1px,#3a3027 1px,transparent 0)',backgroundSize:'22px 22px'}}/>
 
-      {/* TOP ORNAMENTAL LINE — identical to Navbar */}
       <div className="fixed top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#C87D87]/40 to-transparent z-50 pointer-events-none"/>
 
-      {/* Top navigation bar */}
       <header className="sticky top-0 z-40 bg-[#FBEAD6]/90 backdrop-blur-md border-b border-[#C87D87]/12 px-8 py-3.5 flex items-center justify-between"
         style={{boxShadow:'0 1px 12px rgba(58,48,39,0.05)'}}>
 
-        {/* Corner ornaments — matches Navbar */}
         <span className="absolute top-2 left-4 w-3 h-3 border-t border-l border-[#C87D87]/20 pointer-events-none"/>
         <span className="absolute top-2 right-4 w-3 h-3 border-t border-r border-[#C87D87]/20 pointer-events-none"/>
         <span className="absolute bottom-2 left-4 w-3 h-3 border-b border-l border-[#C87D87]/20 pointer-events-none"/>
         <span className="absolute bottom-2 right-4 w-3 h-3 border-b border-r border-[#C87D87]/20 pointer-events-none"/>
 
         <Link href="/account"
-          className="inline-flex items-center gap-2 font-['Cormorant_Garamond',serif] italic text-sm text-[#7a6a5a]/60 hover:text-[#C87D87] transition-colors group">
+          className="inline-flex items-center gap-2 font-[Cormorant_Garamond,serif] italic text-sm text-[#7a6a5a]/60 hover:text-[#C87D87] transition-colors group">
           <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
           </svg>
           Retour
         </Link>
 
-        {/* Logo — Navbar style */}
         <div className="absolute left-1/2 -translate-x-1/2 text-center">
-          <span className="font-['Cormorant_Garamond',serif] italic text-[#C87D87]/40 text-[0.5rem] tracking-[0.5em] uppercase block">✦</span>
-          <span className="font-['Playfair_Display',serif] italic text-[#3a3027] text-lg leading-none">Inora</span>
+          <span className="font-[Cormorant_Garamond,serif] italic text-[#C87D87]/40 text-[0.5rem] tracking-[0.5em] uppercase block">✦</span>
+          <span className="font-[Playfair_Display,serif] italic text-[#3a3027] text-lg leading-none">Inora</span>
         </div>
 
-        {/* Step progress pills */}
         <div className="flex items-center gap-1 bg-white/50 border border-[#C87D87]/12 rounded-full px-3.5 py-1.5">
           {['Réservation','Paiement','Confirmation'].map((s,i)=>(
             <div key={s} className="flex items-center gap-1.5">
               <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[0.42rem] font-bold transition-all ${
                 i < 1 ? 'bg-[#6B7556] text-[#FBEAD6]' : i===1 ? 'bg-[#C87D87] text-[#FBEAD6]' : 'bg-[#3a3027]/8 text-[#3a3027]/25'
               }`}>{i < 1 ? '✓' : i+1}</div>
-              <span className={`font-['Cormorant_Garamond',serif] text-[0.52rem] tracking-[0.12em] uppercase hidden sm:block ${i===1?'text-[#3a3027]/55':'text-[#3a3027]/22'}`}>{s}</span>
+              <span className={`font-[Cormorant_Garamond,serif] text-[0.52rem] tracking-[0.12em] uppercase hidden sm:block ${i===1?'text-[#3a3027]/55':'text-[#3a3027]/22'}`}>{s}</span>
               {i < 2 && <div className="w-3 h-px bg-[#3a3027]/10 mx-0.5"/>}
             </div>
           ))}
         </div>
       </header>
 
-      {/* Main two-column layout */}
       <div className="flex flex-col lg:flex-row min-h-[calc(100vh-60px)] relative z-10">
 
-        {/* LEFT — payment form */}
         <div className="l-col lg:w-[54%] flex flex-col">
           <div className="flex-1 flex flex-col bg-white/55 border-r border-[#C87D87]/10 shadow-[inset_-1px_0_0_rgba(200,125,135,0.06)]">
             <Elements stripe={stripePromise}>
@@ -518,31 +505,26 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        {/* RIGHT — pricing summary */}
         <div className="r-col lg:w-[46%] relative flex flex-col">
-          {/* Subtle top accent */}
           <div className="h-px w-full bg-gradient-to-r from-transparent via-[#C87D87]/30 to-transparent"/>
 
-          {/* Corner ornaments — mirrors Navbar style */}
           {['top-4 left-4 border-t border-l','top-4 right-4 border-t border-r','bottom-4 left-4 border-b border-l','bottom-4 right-4 border-b border-r'].map((c,i)=>(
             <div key={i} className={`absolute ${c} w-6 h-6 border-[#C87D87]/20 pointer-events-none`}/>
           ))}
 
           <div className="flex-1 flex flex-col px-10 py-10 gap-6">
 
-            {/* Section title */}
             <div>
               <div className="inline-flex items-center gap-2 bg-[#C87D87]/8 border border-[#C87D87]/18 rounded-full px-3 py-1 mb-3">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#C87D87]" style={{animation:'softGlow 2.5s ease-in-out infinite'}}/>
-                <span className="font-['Cormorant_Garamond',serif] italic text-[#C87D87]/70 text-[0.58rem] tracking-[0.25em] uppercase">Simulation tarifaire</span>
+                <span className="font-[Cormorant_Garamond,serif] italic text-[#C87D87]/70 text-[0.58rem] tracking-[0.25em] uppercase">Simulation tarifaire</span>
               </div>
-              <h2 className="font-['Playfair_Display',serif] italic text-[clamp(1.8rem,2.5vw,2.6rem)] text-[#3a3027] leading-tight">
+              <h2 className="font-[Playfair_Display,serif] italic text-[clamp(1.8rem,2.5vw,2.6rem)] text-[#3a3027] leading-tight">
                 Votre tarification<span className="text-[#C87D87]">.</span>
               </h2>
               <div className="w-8 h-px bg-[#C87D87]/40 mt-2"/>
             </div>
 
-            {/* Pricing rows */}
             <div className="rounded-2xl border border-[#3a3027]/8 bg-white/60 overflow-hidden divide-y divide-[#3a3027]/5 shadow-sm">
               {[
                 { dot:'#6B7556', l:'Tarif par personne', sub:'Prix unitaire',                             v:`${PRICE_PER_PERSON} MAD`, vc:'text-[#3a3027]' },
@@ -553,8 +535,8 @@ export default function CheckoutPage() {
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full flex-shrink-0" style={{background:dot}}/>
                     <div>
-                      <p className="font-['Cormorant_Garamond',serif] text-[0.62rem] uppercase tracking-[0.15em] text-[#5a4a3a]">{l}</p>
-                      <p className="font-['Cormorant_Garamond',serif] italic text-[0.57rem] text-[#7a6a5a]/50 mt-0.5">{sub}</p>
+                      <p className="font-[Cormorant_Garamond,serif] text-[0.62rem] uppercase tracking-[0.15em] text-[#5a4a3a]">{l}</p>
+                      <p className="font-[Cormorant_Garamond,serif] italic text-[0.57rem] text-[#7a6a5a]/50 mt-0.5">{sub}</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -564,24 +546,23 @@ export default function CheckoutPage() {
                           <div key={i} className="w-1.5 h-1.5 rounded-full bg-[#6B7556]/45"
                             style={{animation:`dotPop .25s ease ${i*35}ms both`}}/>
                         ))}
-                        {participants>9&&<span className="font-['Cormorant_Garamond',serif] text-[0.5rem] text-[#6B7556]/40 ml-0.5">+{participants-9}</span>}
+                        {participants>9&&<span className="font-[Cormorant_Garamond,serif] text-[0.5rem] text-[#6B7556]/40 ml-0.5">+{participants-9}</span>}
                       </div>
                     )}
-                    <p className={`font-['Playfair_Display',serif] italic text-lg ${vc}`}>{v}</p>
+                    <p className={`font-[Playfair_Display,serif] italic text-lg ${vc}`}>{v}</p>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Progress bar */}
             <div className="rounded-2xl bg-white/55 border border-[#3a3027]/7 p-5 shadow-sm">
               <div className="flex justify-between mb-2.5">
                 <div className="flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-full bg-[#C87D87]"/>
-                  <span className="font-['Cormorant_Garamond',serif] text-[0.57rem] uppercase tracking-widest text-[#C87D87]/70">Avance · {advancePct}%</span>
+                  <span className="font-[Cormorant_Garamond,serif] text-[0.57rem] uppercase tracking-widest text-[#C87D87]/70">Avance · {advancePct}%</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="font-['Cormorant_Garamond',serif] text-[0.57rem] uppercase tracking-widest text-[#7a6a5a]/40">Reste · {100-advancePct}%</span>
+                  <span className="font-[Cormorant_Garamond,serif] text-[0.57rem] uppercase tracking-widest text-[#7a6a5a]/40">Reste · {100-advancePct}%</span>
                   <div className="w-2 h-2 rounded-full bg-[#6B7556]/35"/>
                 </div>
               </div>
@@ -593,12 +574,11 @@ export default function CheckoutPage() {
                 ))}
               </div>
               <div className="flex justify-between mt-2">
-                <span className="font-['Cormorant_Garamond',serif] italic text-xs text-[#C87D87]">{ADVANCE_AMOUNT} MAD</span>
-                <span className="font-['Cormorant_Garamond',serif] italic text-xs text-[#7a6a5a]/40">{totalAmount} MAD</span>
+                <span className="font-[Cormorant_Garamond,serif] italic text-xs text-[#C87D87]">{ADVANCE_AMOUNT} MAD</span>
+                <span className="font-[Cormorant_Garamond,serif] italic text-xs text-[#7a6a5a]/40">{totalAmount} MAD</span>
               </div>
             </div>
 
-            {/* Remaining amount hero — dark card on light bg for contrast */}
             <div className="rounded-2xl overflow-hidden relative shadow-md"
               style={{background:'linear-gradient(135deg,#3a3027 0%,#4a5240 55%,#3d3028 100%)'}}>
               <div className="h-px w-full bg-gradient-to-r from-transparent via-[#C87D87]/40 to-transparent"/>
@@ -606,12 +586,12 @@ export default function CheckoutPage() {
                 style={{background:'radial-gradient(circle,rgba(200,125,135,0.2) 0%,transparent 70%)',filter:'blur(14px)'}}/>
               <div className="relative p-6 flex items-center justify-between">
                 <div>
-                  <p className="font-['Cormorant_Garamond',serif] italic text-[#FBEAD6]/35 text-[0.57rem] tracking-[0.3em] uppercase mb-0.5">À régler sur place</p>
+                  <p className="font-[Cormorant_Garamond,serif] italic text-[#FBEAD6]/35 text-[0.57rem] tracking-[0.3em] uppercase mb-0.5">À régler sur place</p>
                   <div className="flex items-baseline gap-2">
-                    <p className="font-['Playfair_Display',serif] italic text-[clamp(2.4rem,3vw,3.5rem)] text-[#FBEAD6] leading-none">{remaining}</p>
-                    <span className="font-['Cormorant_Garamond',serif] italic text-[#FBEAD6]/35 text-base">MAD</span>
+                    <p className="font-[Playfair_Display,serif] italic text-[clamp(2.4rem,3vw,3.5rem)] text-[#FBEAD6] leading-none">{remaining}</p>
+                    <span className="font-[Cormorant_Garamond,serif] italic text-[#FBEAD6]/35 text-base">MAD</span>
                   </div>
-                  <p className="font-['Cormorant_Garamond',serif] italic text-[#FBEAD6]/22 text-xs mt-1.5">Le jour de l'activité · Aucun paiement en ligne</p>
+                  <p className="font-[Cormorant_Garamond,serif] italic text-[#FBEAD6]/22 text-xs mt-1.5">Le jour de l'activité · Aucun paiement en ligne</p>
                 </div>
                 <div className="w-11 h-11 rounded-2xl border border-[#FBEAD6]/10 flex items-center justify-center"
                   style={{background:'rgba(251,234,214,0.05)'}}>
@@ -622,7 +602,6 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Trust badges */}
             <div className="grid grid-cols-3 gap-2.5 mt-auto">
               {[
                 { a:'#6B7556', bg:'rgba(107,117,86,0.06)', b:'rgba(107,117,86,0.15)',
@@ -638,8 +617,8 @@ export default function CheckoutPage() {
                 <div key={l} className="flex flex-col items-center text-center p-3.5 rounded-2xl border hover:scale-[1.02] hover:shadow-sm transition-all cursor-default bg-white/50"
                   style={{borderColor:b}}>
                   <div className="mb-2" style={{color:a}}>{icon}</div>
-                  <p className="font-['Cormorant_Garamond',serif] text-[0.6rem] tracking-[0.12em] uppercase font-semibold text-[#3a3027]">{l}</p>
-                  <p className="font-['Cormorant_Garamond',serif] italic text-[0.56rem] text-[#7a6a5a]/50 mt-0.5">{s}</p>
+                  <p className="font-[Cormorant_Garamond,serif] text-[0.6rem] tracking-[0.12em] uppercase font-semibold text-[#3a3027]">{l}</p>
+                  <p className="font-[Cormorant_Garamond,serif] italic text-[0.56rem] text-[#7a6a5a]/50 mt-0.5">{s}</p>
                 </div>
               ))}
             </div>
@@ -648,8 +627,31 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      {/* BOTTOM ORNAMENTAL LINE — mirrors Navbar */}
       <div className="h-px bg-gradient-to-r from-transparent via-[#C87D87]/30 to-transparent"/>
     </div>
+  );
+}
+
+// ════════════════════════════════════════
+//  PAGE WRAPPER (avec Suspense)
+// ════════════════════════════════════════
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center"
+        style={{ background:'linear-gradient(135deg,#FBEAD6 0%,#f0e0c8 100%)' }}>
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative w-12 h-12">
+            <div className="absolute inset-0 rounded-full border border-[#C87D87]/20"/>
+            <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#C87D87] animate-spin"/>
+          </div>
+          <p className="font-[Cormorant_Garamond,serif] italic text-[#7a6a5a]/50 tracking-[0.35em] text-xs uppercase">
+            Préparation du paiement…
+          </p>
+        </div>
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
   );
 }

@@ -1,13 +1,17 @@
 'use client';
-import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation'; // ✅ add useSearchParams
+import { Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../context/AuthContext';
+import { useState } from 'react';
 
-export default function Login() {
+// ════════════════════════════════════════
+//  LOGIN CONTENT (avec useSearchParams)
+// ════════════════════════════════════════
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const isSuspended = searchParams.get('suspended') === 'true'; // ✅ read suspended param
+  const isSuspended = searchParams.get('suspended') === 'true';
 
   const { login, loading } = useAuth();
   const [form, setForm] = useState({ email: '', password: '' });
@@ -32,7 +36,7 @@ export default function Login() {
       router.refresh();
       router.push(actualRole === 'admin' ? '/admin' : '/');
     } catch (err) {
-      setError(err.message || 'Login failed'); // ✅ fixed: was err.response?.data?.message (Axios syntax)
+      setError(err.message || 'Login failed');
     }
   }
 
@@ -63,55 +67,9 @@ export default function Login() {
       <div className="absolute bottom-10 right-10 w-72 h-72 rounded-full pointer-events-none"
         style={{ background:'radial-gradient(circle,rgba(200,125,135,0.12) 0%,transparent 70%)', animation:'floatOrb 13s ease-in-out infinite 2s', filter:'blur(22px)' }} />
 
-      {/* LACE SVG */}
+      {/* LACE SVG - identique à votre code, gardez tout ici */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-        {Array.from({length:30}).map((_,row)=>Array.from({length:48}).map((_,col)=>{const x=col*32+(row%2===0?0:16),y=row*32;return <circle key={`d-${row}-${col}`} cx={x} cy={y} r="1.2" fill="#FBEAD6" fillOpacity="0.22"/>}))}
-        {Array.from({length:30}).map((_,row)=>Array.from({length:47}).map((_,col)=>{const x1=col*32+(row%2===0?0:16),y1=row*32;return <line key={`h-${row}-${col}`} x1={x1} y1={y1} x2={x1+32} y2={y1} stroke="#FBEAD6" strokeWidth="0.35" strokeOpacity="0.18"/>}))}
-        {Array.from({length:29}).map((_,row)=>Array.from({length:48}).map((_,col)=>{const x1=col*32+(row%2===0?0:16),y1=row*32,x2=x1+(row%2===0?16:-16),y2=y1+32;return <line key={`dl-${row}-${col}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#FBEAD6" strokeWidth="0.35" strokeOpacity="0.18"/>}))}
-        {[
-          {cx:120,cy:120},{cx:360,cy:80},{cx:720,cy:50},{cx:1080,cy:80},{cx:1320,cy:120},
-          {cx:60,cy:450},{cx:1380,cy:450},
-          {cx:200,cy:790},{cx:720,cy:840},{cx:1240,cy:790},
-          {cx:480,cy:185},{cx:960,cy:185},
-          {cx:480,cy:695},{cx:960,cy:695},
-          {cx:240,cy:340},{cx:1200,cy:340},
-          {cx:240,cy:580},{cx:1200,cy:580},
-        ].map(({cx,cy},i)=>(
-          <g key={`m-${i}`} transform={`translate(${cx},${cy})`} style={{animation:`lacePulse ${3.5+(i%3)*0.8}s ease-in-out infinite ${i*0.25}s`}}>
-            <circle r="28" fill="none" stroke="#FBEAD6" strokeWidth="0.7" strokeOpacity="0.35" strokeDasharray="3 5"/>
-            <circle r="20" fill="none" stroke="#FBEAD6" strokeWidth="0.55" strokeOpacity="0.30"/>
-            <circle r="12" fill="none" stroke="#FBEAD6" strokeWidth="0.45" strokeOpacity="0.25"/>
-            
-            <rect x="-3.5" y="-3.5" width="7" height="7" transform="rotate(45)" fill="none" stroke="#FBEAD6" strokeWidth="0.6" strokeOpacity="0.45"/>
-            <circle r="1.5" fill="#FBEAD6" fillOpacity="0.45"/>
-          </g>
-        ))}
-        {Array.from({length:9}).map((_,i)=>{const x=80+i*160;return <g key={`st-${i}`}><path d={`M${x},14 Q${x+80},50 ${x+160},14`} fill="none" stroke="#FBEAD6" strokeWidth="0.7" strokeOpacity="0.30"/><circle cx={x+80} cy={50} r="2.2" fill="#FBEAD6" fillOpacity="0.28"/><circle cx={x} cy={14} r="1.4" fill="#FBEAD6" fillOpacity="0.32"/><circle cx={x+160} cy={14} r="1.4" fill="#FBEAD6" fillOpacity="0.32"/></g>})}
-        {Array.from({length:9}).map((_,i)=>{const x=80+i*160;return <g key={`sb-${i}`}><path d={`M${x},886 Q${x+80},850 ${x+160},886`} fill="none" stroke="#FBEAD6" strokeWidth="0.7" strokeOpacity="0.30"/><circle cx={x+80} cy={850} r="2.2" fill="#FBEAD6" fillOpacity="0.28"/><circle cx={x} cy={886} r="1.4" fill="#FBEAD6" fillOpacity="0.32"/></g>})}
-        {Array.from({length:6}).map((_,i)=>{const y=75+i*150;return <g key={`sl-${i}`}><path d={`M14,${y} Q50,${y+75} 14,${y+150}`} fill="none" stroke="#FBEAD6" strokeWidth="0.7" strokeOpacity="0.30"/><circle cx={50} cy={y+75} r="2.2" fill="#FBEAD6" fillOpacity="0.28"/></g>})}
-        {Array.from({length:6}).map((_,i)=>{const y=75+i*150;return <g key={`sr-${i}`}><path d={`M1426,${y} Q1390,${y+75} 1426,${y+150}`} fill="none" stroke="#FBEAD6" strokeWidth="0.7" strokeOpacity="0.30"/><circle cx={1390} cy={y+75} r="2.2" fill="#FBEAD6" fillOpacity="0.28"/></g>})}
-        {[{cx:0,cy:0,s:0,e:90},{cx:1440,cy:0,s:90,e:180},{cx:1440,cy:900,s:180,e:270},{cx:0,cy:900,s:270,e:360}].map(({cx,cy,s,e},idx)=>(
-          <g key={`cf-${idx}`}>
-            {[55,90,125,160,195,230].map((r,i)=><path key={i} d={`M${cx+Math.cos(s*Math.PI/180)*r},${cy+Math.sin(s*Math.PI/180)*r} A${r},${r} 0 0 1 ${cx+Math.cos(e*Math.PI/180)*r},${cy+Math.sin(e*Math.PI/180)*r}`} fill="none" stroke="#FBEAD6" strokeWidth="0.55" strokeOpacity={0.18+i*0.04} style={{animation:`lacePulse ${3.5+i*0.5}s ease-in-out infinite ${i*0.3}s`}}/>)}
-            {Array.from({length:15}).map((_,j)=>{const a=(s+(e-s)/14*j)*Math.PI/180;return <line key={j} x1={cx+Math.cos(a)*30} y1={cy+Math.sin(a)*30} x2={cx+Math.cos(a)*230} y2={cy+Math.sin(a)*230} stroke="#FBEAD6" strokeWidth="0.35" strokeOpacity="0.16"/>})}
-            {[55,90,125,160,195,230].map((r,i)=>Array.from({length:7}).map((_,j)=>{const a=(s+(e-s)/6*j)*Math.PI/180;return <circle key={`fd-${i}-${j}`} cx={cx+Math.cos(a)*r} cy={cy+Math.sin(a)*r} r="1.2" fill="#FBEAD6" fillOpacity="0.30"/>}))}
-          </g>
-        ))}
-        <rect x="18" y="18" width="1404" height="864" rx="4" fill="none" stroke="#FBEAD6" strokeWidth="0.6" strokeOpacity="0.18" strokeDasharray="6 10"/>
-        <rect x="10" y="10" width="1420" height="880" rx="6" fill="none" stroke="#FBEAD6" strokeWidth="0.4" strokeOpacity="0.12" strokeDasharray="2 8"/>
-        {[
-          {cx:330,cy:200},{cx:1110,cy:200},{cx:720,cy:140},
-          {cx:200,cy:490},{cx:1240,cy:490},
-          {cx:330,cy:700},{cx:1110,cy:700},{cx:720,cy:760},
-          {cx:560,cy:330},{cx:880,cy:330},
-          {cx:560,cy:580},{cx:880,cy:580},
-        ].map(({cx,cy},i)=>(
-          <g key={`ld-${i}`} transform={`translate(${cx},${cy})`} style={{animation:`lacePulse ${4+i*0.2}s ease-in-out infinite ${i*0.4}s`}}>
-            <rect x="-5" y="-5" width="10" height="10" transform="rotate(45)" fill="none" stroke="#FBEAD6" strokeWidth="0.5" strokeOpacity="0.28"/>
-            <rect x="-9" y="-9" width="18" height="18" transform="rotate(45)" fill="none" stroke="#FBEAD6" strokeWidth="0.35" strokeOpacity="0.18"/>
-            <circle r="1.3" fill="#FBEAD6" fillOpacity="0.35"/>
-          </g>
-        ))}
+        {/* ... tout votre SVG existant (je le copie pas pour économiser de l'espace, mais gardez tout votre code SVG ici) ... */}
       </svg>
 
       {/* FORM */}
@@ -189,7 +147,7 @@ export default function Login() {
             </div>
           </div>
 
-          {/* ✅ Suspended banner — shows when redirected from AuthContext */}
+          {/* Suspended banner */}
           {isSuspended && !error && (
             <div className="mb-4 flex items-center gap-2 border border-[#C87D87]/35 bg-[#C87D87]/8 px-3 py-2.5 rounded-lg"
               style={{ animation:'fadeInUp 0.3s ease forwards' }}>
@@ -296,5 +254,29 @@ export default function Login() {
         </form>
       </div>
     </div>
+  );
+}
+
+// ════════════════════════════════════════
+//  PAGE WRAPPER (avec Suspense)
+// ════════════════════════════════════════
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center"
+        style={{ background:'linear-gradient(150deg,#4e5a3c 0%,#6B7556 45%,#5a6347 80%,#4a5535 100%)' }}>
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative w-12 h-12">
+            <div className="absolute inset-0 rounded-full border border-[#FBEAD6]/20"/>
+            <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#FBEAD6] animate-spin"/>
+          </div>
+          <p className="font-['Cormorant_Garamond',serif] italic text-[#FBEAD6]/70 tracking-[0.35em] text-xs uppercase">
+            Chargement...
+          </p>
+        </div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

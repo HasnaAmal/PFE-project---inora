@@ -7,8 +7,10 @@ export default function ReviewForm({ gatheringId }) {
   const [submitted, setSubmitted] = useState(false);
   const [hoveredStar, setHoveredStar] = useState(null);
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
   const submitReview = async () => {
-    await fetch('http://localhost:4000/api/reviews', {
+    await fetch(`${API_URL}/api/reviews`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',

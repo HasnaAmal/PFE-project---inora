@@ -9,7 +9,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'; // Fallback pour local
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
   useEffect(() => {
     fetch(`${API_URL}/api/auth/me`, { credentials: 'include' })
@@ -28,16 +28,25 @@ export function AuthProvider({ children }) {
   }, [API_URL, router]);
 
   const login = async (email, password, selectedRole, adminCode) => {
+    // ✅ CORRECTION : Construire le body sans envoyer undefined
+    const body = {
+      email,
+      password,
+      role: selectedRole,
+    };
+    
+    // ✅ N'ajouter adminCode que s'il existe
+    if (adminCode) {
+      body.adminCode = adminCode;
+    }
+
     const res = await fetch(`${API_URL}/api/auth/login`, {
-      method:      'POST',
-      headers:     { 'Content-Type': 'application/json' },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({
-        email, password,
-        role:      selectedRole,
-        adminCode: adminCode || undefined,
-      }),
+      body: JSON.stringify(body),
     });
+    
     if (!res.ok) {
       const err = await res.json();
       throw new Error(err.message || 'Login failed');
@@ -48,15 +57,24 @@ export function AuthProvider({ children }) {
   };
 
   const register = async (fullName, email, password, adminCode) => {
+    // ✅ CORRECTION : Pareil pour register
+    const body = {
+      fullName,
+      email,
+      password,
+    };
+    
+    if (adminCode) {
+      body.adminCode = adminCode;
+    }
+
     const res = await fetch(`${API_URL}/api/auth/register`, {
-      method:      'POST',
-      headers:     { 'Content-Type': 'application/json' },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({
-        fullName, email, password,
-        adminCode: adminCode || undefined,
-      }),
+      body: JSON.stringify(body),
     });
+    
     if (!res.ok) {
       const err = await res.json();
       throw new Error(err.message || 'Registration failed');
@@ -68,7 +86,8 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     await fetch(`${API_URL}/api/auth/logout`, {
-      method: 'POST', credentials: 'include',
+      method: 'POST', 
+      credentials: 'include',
     });
     setUser(null);
   };

@@ -105,7 +105,6 @@ export const login = async (req, res) => {
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
-
 export const resetPassword = async (req, res) => {
   try {
     const { token, password } = req.body;

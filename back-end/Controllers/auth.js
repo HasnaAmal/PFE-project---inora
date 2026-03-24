@@ -35,23 +35,36 @@ export const login = async (req, res) => {
   try {
     const { email, password, role, adminCode } = req.body;
 
+    // ✅ AJOUTE ICI (après avoir récupéré adminCode)
+    console.log('=== DEBUG ADMIN ===');
+    console.log('Admin code reçu:', adminCode);
+    console.log('Variable env ADMIN_SECRET_CODE:', process.env.ADMIN_SECRET_CODE);
+    console.log('Type reçu:', typeof adminCode);
+    console.log('Type env:', typeof process.env.ADMIN_SECRET_CODE);
+    console.log('Égalité stricte:', adminCode === process.env.ADMIN_SECRET_CODE);
+    console.log('==================');
+
+    // Vérifier si l'utilisateur existe
     const user = await prisma.user.findFirst({ where: { email } });
     if (!user) return res.status(400).json({ message: 'Invalid email' });
 
+    // Vérifier le mot de passe
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(400).json({ message: 'Invalid password' });
 
-    // ✅ block suspended users from logging in
+    // Vérifier si le compte est suspendu
     if (user.suspended) {
       return res.status(403).json({
         message: 'Your account has been suspended. Please contact support.'
       });
     }
 
+    // Vérifier le rôle
     if (role && user.role !== role) {
       return res.status(403).json({ message: `You are not registered as ${role}` });
     }
 
+    // Vérifier le code admin
     if (role === 'admin') {
       if (!adminCode) {
         return res.status(403).json({ message: 'Admin code is required' });
@@ -61,12 +74,14 @@ export const login = async (req, res) => {
       }
     }
 
+    // Générer le token
     const accessToken = jwt.sign(
       { id: user.id },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
 
+    // Définir le cookie
     res.cookie("token", accessToken, {
       httpOnly: true,
       secure:   false,
@@ -74,6 +89,7 @@ export const login = async (req, res) => {
       maxAge:   60 * 60 * 1000
     });
 
+    // Réponse
     return res.status(200).json({
       message: "Login successful",
       user: {

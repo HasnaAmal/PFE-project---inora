@@ -35,75 +35,59 @@ export const login = async (req, res) => {
   try {
     const { email, password, role, adminCode } = req.body;
 
-    // ✅ AJOUTE ICI (après avoir récupéré adminCode)
-    console.log('=== DEBUG ADMIN ===');
-    console.log('Admin code reçu:', adminCode);
-    console.log('Variable env ADMIN_SECRET_CODE:', process.env.ADMIN_SECRET_CODE);
-    console.log('Type reçu:', typeof adminCode);
-    console.log('Type env:', typeof process.env.ADMIN_SECRET_CODE);
-    console.log('Égalité stricte:', adminCode === process.env.ADMIN_SECRET_CODE);
-    console.log('==================');
+    console.log('🔐 Login attempt:', { email, role, adminCode: adminCode ? 'present' : 'missing' });
 
-    // Vérifier si l'utilisateur existe
     const user = await prisma.user.findFirst({ where: { email } });
-    if (!user) return res.status(400).json({ message: 'Invalid email' });
+    if (!user) {
+      console.log('❌ User not found:', email);
+      return res.status(400).json({ message: 'Invalid email' });
+    }
 
-    // Vérifier le mot de passe
     const valid = await bcrypt.compare(password, user.password);
-    if (!valid) return res.status(400).json({ message: 'Invalid password' });
+    if (!valid) {
+      console.log('❌ Invalid password for:', email);
+      return res.status(400).json({ message: 'Invalid password' });
+    }
 
-    // Vérifier si le compte est suspendu
     if (user.suspended) {
-      return res.status(403).json({
-        message: 'Your account has been suspended. Please contact support.'
-      });
+      console.log('❌ Account suspended:', email);
+      return res.status(403).json({ message: 'Account suspended' });
     }
 
-    // Vérifier le rôle
-    if (role && user.role !== role) {
-      return res.status(403).json({ message: `You are not registered as ${role}` });
-    }
-
-    // Vérifier le code admin
     if (role === 'admin') {
       if (!adminCode) {
-        return res.status(403).json({ message: 'Admin code is required' });
+        console.log('❌ Admin code missing');
+        return res.status(403).json({ message: 'Admin code required' });
       }
       if (adminCode !== process.env.ADMIN_SECRET_CODE) {
+        console.log('❌ Invalid admin code');
         return res.status(403).json({ message: 'Invalid admin code' });
       }
     }
 
-    // Générer le token
-    const accessToken = jwt.sign(
-      { id: user.id },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
+    const accessToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    // Définir le cookie
-  // Définir le cookie
-res.cookie("token", accessToken, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',  // true en prod, false en local
-  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-  maxAge: 60 * 60 * 1000
-});
+    res.cookie("token", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 60 * 60 * 1000
+    });
 
-    // Réponse
+    console.log('✅ Login successful for:', email);
     return res.status(200).json({
       message: "Login successful",
       user: {
-        id:       user.id,
+        id: user.id,
         fullName: user.fullName,
-        email:    user.email,
-        role:     user.role,
+        email: user.email,
+        role: user.role,
       }
     });
 
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Something went wrong" });
+    console.error('❌ Login error:', error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 export const resetPassword = async (req, res) => {

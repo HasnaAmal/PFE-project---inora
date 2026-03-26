@@ -3,6 +3,15 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 
+const API = process.env.NEXT_PUBLIC_API_URL;
+
+// ✅ Add this helper once — fixes relative paths from backend
+const resolveAvatar = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${API}${url}`;
+};
+
 const ACTIVITY_IMGS = {
   'Crochet Circle':   'https://images.unsplash.com/photo-1612278675615-7b093b07772d',
   'Painting Session': 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b',
@@ -61,7 +70,6 @@ const DeletedBadge = () => (
   </span>
 );
 
-// ── Inline field input (account page style) ──
 const Field = ({ label, children }) => (
   <div className="flex items-start gap-4 py-4 border-b border-[#C87D87]/10 last:border-0">
     <span className="font-['Cormorant_Garamond',serif] text-[0.6rem] tracking-widest uppercase text-[#7a6a5a]/50 w-24 flex-shrink-0 pt-2">{label}</span>
@@ -116,7 +124,7 @@ export default function Admin() {
 
   const displayName  = profile?.fullName ?? user?.fullName ?? user?.name ?? 'Admin';
   const displayEmail = profile?.email    ?? user?.email ?? '';
-  const avatarUrl    = profile?.avatarUrl ?? user?.avatarUrl ?? null;
+  const avatarUrl    = resolveAvatar(profile?.avatarUrl ?? user?.avatarUrl ?? null); // ✅ resolved here
 
   useEffect(() => {
     fetchAll();
@@ -126,7 +134,7 @@ export default function Admin() {
 
   const fetchProfile = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, { credentials:'include' });
+      const res = await fetch(`${API}/api/auth/me`, { credentials:'include' });
       if (res.ok) {
         const data = await res.json();
         setProfile(data.user);
@@ -140,8 +148,8 @@ export default function Admin() {
   const fetchReviews = async () => {
     try {
       const [aRes, pRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reviews/approved`, { credentials:'include' }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reviews/pending`,  { credentials:'include' }),
+        fetch(`${API}/api/reviews/approved`, { credentials:'include' }),
+        fetch(`${API}/api/reviews/pending`,  { credentials:'include' }),
       ]);
       const aData = await aRes.json(); const pData = await pRes.json();
       setApprovedReviews(Array.isArray(aData) ? aData : []);
@@ -151,14 +159,14 @@ export default function Admin() {
   const fetchUsers = async () => {
     setUsersLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/admin/users`, { credentials:'include' });
+      const res = await fetch(`${API}/api/auth/admin/users`, { credentials:'include' });
       if (res.ok) setUsers(await res.json());
     } finally { setUsersLoading(false); }
   };
   const fetchBookings = async () => {
     setBookingsLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/bookings`, { credentials:'include' });
+      const res = await fetch(`${API}/api/bookings`, { credentials:'include' });
       const d   = await res.json();
       setBookings(Array.isArray(d) ? d : []);
     } catch { setBookings([]); } finally { setBookingsLoading(false); }
@@ -166,23 +174,23 @@ export default function Admin() {
   const fetchPayments = async () => {
     setPaymentsLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/bookings/paid`, { credentials:'include' });
+      const res = await fetch(`${API}/api/bookings/paid`, { credentials:'include' });
       const d   = await res.json();
       setPayments(Array.isArray(d) ? d : []);
     } catch { setPayments([]); } finally { setPaymentsLoading(false); }
   };
 
   const approveReview = async (id) => {
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reviews/${id}/approve`, { method:'PATCH', credentials:'include' });
+    await fetch(`${API}/api/reviews/${id}/approve`, { method:'PATCH', credentials:'include' });
     fetchReviews();
   };
   const deleteReview = async (id) => {
     if (!confirm('Delete this review?')) return;
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reviews/${id}`, { method:'DELETE', credentials:'include' });
+    await fetch(`${API}/api/reviews/${id}`, { method:'DELETE', credentials:'include' });
     fetchReviews();
   };
   const toggleSuspend = async (id, suspended) => {
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/admin/users/${id}/suspend`, {
+    await fetch(`${API}/api/auth/admin/users/${id}/suspend`, {
       method:'PATCH', credentials:'include',
       headers:{ 'Content-Type':'application/json' },
       body: JSON.stringify({ suspended: !suspended }),
@@ -190,7 +198,7 @@ export default function Admin() {
     fetchUsers();
   };
   const updateBookingStatus = async (id, status) => {
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/bookings/${id}/status`, {
+    await fetch(`${API}/api/bookings/${id}/status`, {
       method:'PATCH', credentials:'include',
       headers:{ 'Content-Type':'application/json' },
       body: JSON.stringify({ status }),
@@ -200,7 +208,7 @@ export default function Admin() {
   };
   const deleteBooking = async (id) => {
     if (!confirm('Supprimer cette réservation ?')) return;
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/bookings/${id}`, { method:'DELETE', credentials:'include' });
+    await fetch(`${API}/api/bookings/${id}`, { method:'DELETE', credentials:'include' });
     fetchBookings(); fetchPayments();
     if (selectedBooking?.id === id) setSelectedBooking(null);
   };
@@ -212,14 +220,17 @@ export default function Admin() {
     setAvatarLoad(true); setAvatarMsg({ type:'', text:'' });
     const fd = new FormData(); fd.append('avatar', file);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/avatar`, {
+      const res = await fetch(`${API}/api/auth/avatar`, {
         method:'POST', credentials:'include', body: fd,
+        // ⚠️ NO Content-Type header — browser sets it with boundary
       });
       const data = await res.json();
       if (res.ok) {
         setAvatarMsg({ type:'success', text:'Avatar updated.' });
-        setProfile(p => ({ ...p, avatarUrl: data.avatarUrl }));
-        if (setUser) setUser(u => ({ ...u, avatarUrl: data.avatarUrl }));
+        // ✅ resolve full URL + cache bust
+        const freshUrl = `${resolveAvatar(data.avatarUrl)}?t=${Date.now()}`;
+        setProfile(p => ({ ...p, avatarUrl: freshUrl }));
+        if (setUser) setUser(u => ({ ...u, avatarUrl: freshUrl }));
       } else setAvatarMsg({ type:'error', text: data.message || 'Upload failed.' });
     } catch { setAvatarMsg({ type:'error', text:'Something went wrong.' }); }
     finally { setAvatarLoad(false); }
@@ -228,7 +239,7 @@ export default function Admin() {
   const handleName = async (e) => {
     e.preventDefault(); setNameLoad(true); setNameMsg({ type:'', text:'' });
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/update-name`, {
+      const res = await fetch(`${API}/api/auth/update-name`, {
         method:'PATCH', credentials:'include',
         headers:{ 'Content-Type':'application/json' },
         body: JSON.stringify({ fullName: nameForm.fullName }),
@@ -246,7 +257,7 @@ export default function Admin() {
   const handleEmail = async (e) => {
     e.preventDefault(); setEmailLoad(true); setEmailMsg({ type:'', text:'' });
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/update-email`, {
+      const res = await fetch(`${API}/api/auth/update-email`, {
         method:'PATCH', credentials:'include',
         headers:{ 'Content-Type':'application/json' },
         body: JSON.stringify(emailForm),
@@ -268,7 +279,7 @@ export default function Admin() {
       return setPassMsg({ type:'error', text:'Passwords do not match.' });
     setPassLoad(true); setPassMsg({ type:'', text:'' });
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/update-password`, {
+      const res = await fetch(`${API}/api/auth/update-password`, {
         method:'PATCH', credentials:'include',
         headers:{ 'Content-Type':'application/json' },
         body: JSON.stringify({ currentPassword: passForm.currentPassword, newPassword: passForm.newPassword }),
@@ -285,7 +296,7 @@ export default function Admin() {
   const handleDelete = async (e) => {
     e.preventDefault(); setDeleteLoad(true); setDeleteMsg({ type:'', text:'' });
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/delete-account`, {
+      const res = await fetch(`${API}/api/auth/delete-account`, {
         method:'DELETE', credentials:'include',
         headers:{ 'Content-Type':'application/json' },
         body: JSON.stringify(deleteForm),
@@ -335,12 +346,10 @@ export default function Admin() {
         @keyframes fadeIn  { from{opacity:0} to{opacity:1} }
         @keyframes slideUp { from{opacity:0;transform:translateY(30px) scale(.98)} to{opacity:1;transform:translateY(0) scale(1)} }
         @keyframes slideIn { from{transform:translateX(100%)} to{transform:translateX(0)} }
-
         .pink-sidebar { background: linear-gradient(160deg,#C87D87 0%,#b56b76 55%,#a55e6a 100%); }
         .nav-item { transition:background .18s; border-radius:12px; }
         .nav-item:hover { background:rgba(255,255,255,0.10); }
         .nav-item-active { background:rgba(255,255,255,0.18); }
-
         .dash-bg {
           background-color: #FBEAD6;
           background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cline x1='0' y1='1' x2='18' y2='1' stroke='%23C87D87' stroke-width='0.8' stroke-opacity='0.18'/%3E%3Cline x1='1' y1='0' x2='1' y2='18' stroke='%23C87D87' stroke-width='0.8' stroke-opacity='0.18'/%3E%3Cline x1='80' y1='1' x2='62' y2='1' stroke='%23C87D87' stroke-width='0.8' stroke-opacity='0.18'/%3E%3Cline x1='79' y1='0' x2='79' y2='18' stroke='%23C87D87' stroke-width='0.8' stroke-opacity='0.18'/%3E%3Cline x1='0' y1='79' x2='18' y2='79' stroke='%23C87D87' stroke-width='0.8' stroke-opacity='0.18'/%3E%3Cline x1='1' y1='80' x2='1' y2='62' stroke='%23C87D87' stroke-width='0.8' stroke-opacity='0.18'/%3E%3Cline x1='80' y1='79' x2='62' y2='79' stroke='%23C87D87' stroke-width='0.8' stroke-opacity='0.18'/%3E%3Cline x1='79' y1='80' x2='79' y2='62' stroke='%23C87D87' stroke-width='0.8' stroke-opacity='0.18'/%3E%3Crect x='2' y='2' width='3.5' height='3.5' transform='rotate(45 3.75 3.75)' fill='none' stroke='%23C87D87' stroke-width='0.7' stroke-opacity='0.35'/%3E%3Crect x='73.5' y='2' width='3.5' height='3.5' transform='rotate(45 75.25 3.75)' fill='none' stroke='%23C87D87' stroke-width='0.7' stroke-opacity='0.35'/%3E%3Crect x='2' y='73.5' width='3.5' height='3.5' transform='rotate(45 3.75 75.25)' fill='none' stroke='%23C87D87' stroke-width='0.7' stroke-opacity='0.35'/%3E%3Crect x='73.5' y='73.5' width='3.5' height='3.5' transform='rotate(45 75.25 75.25)' fill='none' stroke='%23C87D87' stroke-width='0.7' stroke-opacity='0.35'/%3E%3Ccircle cx='3.75' cy='3.75' r='0.8' fill='%23C87D87' fill-opacity='0.25'/%3E%3Ccircle cx='76.25' cy='3.75' r='0.8' fill='%23C87D87' fill-opacity='0.25'/%3E%3Ccircle cx='3.75' cy='76.25' r='0.8' fill='%23C87D87' fill-opacity='0.25'/%3E%3Ccircle cx='76.25' cy='76.25' r='0.8' fill='%23C87D87' fill-opacity='0.25'/%3E%3C/svg%3E");
@@ -373,7 +382,6 @@ export default function Admin() {
           style={{ boxShadow:'6px 0 32px rgba(200,125,135,0.30)' }}>
           <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-white/40 to-transparent"/>
 
-          {/* ── LOGO — click → landing ── */}
           <div className={`flex items-center border-b border-white/10 flex-shrink-0 ${collapsed?'justify-center px-0 py-5':'justify-between px-6 py-5'}`}>
             {!collapsed && (
               <button onClick={() => router.push('/')} className="text-left group">
@@ -394,13 +402,13 @@ export default function Admin() {
             </button>
           </div>
 
-          {/* ── Admin avatar in sidebar ── */}
+          {/* ── Sidebar avatar ── */}
           {!collapsed ? (
             <div className="px-5 py-4 border-b border-white/8 flex-shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full border-2 border-white/30 flex-shrink-0 overflow-hidden bg-white/20">
                   {avatarUrl
-                    ? <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover"/>
+                    ? <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover"/>  
                     : <div className="w-full h-full flex items-center justify-center text-white font-bold text-sm">{displayName.charAt(0).toUpperCase()}</div>
                   }
                 </div>
@@ -414,7 +422,7 @@ export default function Admin() {
             <div className="flex justify-center py-3 border-b border-white/8 flex-shrink-0">
               <div className="w-9 h-9 rounded-full border-2 border-white/30 overflow-hidden bg-white/20">
                 {avatarUrl
-                  ? <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover"/>
+                  ? <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover"/>  
                   : <div className="w-full h-full flex items-center justify-center text-white font-bold text-sm">{displayName.charAt(0).toUpperCase()}</div>
                 }
               </div>
@@ -569,8 +577,11 @@ export default function Admin() {
                     </div>
                     {pendingReviews.slice(0,3).map(r => (
                       <div key={r.id} className="trow flex items-center gap-4 px-6 py-3.5 border-b border-[#C87D87]/6 last:border-0">
-                        <div className="w-8 h-8 rounded-full bg-[#C87D87]/15 flex items-center justify-center font-bold text-xs text-[#C87D87] flex-shrink-0">
-                          {r.user.fullName.charAt(0).toUpperCase()}
+                        <div className="w-8 h-8 rounded-full bg-[#C87D87]/15 flex items-center justify-center font-bold text-xs text-[#C87D87] flex-shrink-0 overflow-hidden">
+                          {r.user.avatarUrl
+                            ? <img src={resolveAvatar(r.user.avatarUrl)} alt="" className="w-full h-full object-cover"/>  
+                            : r.user.fullName.charAt(0).toUpperCase()
+                          }
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-['Cormorant_Garamond',serif] text-sm text-[#3a3027] font-semibold">{r.user.fullName}</p>
@@ -678,9 +689,9 @@ export default function Admin() {
                         className={`trow grid grid-cols-[2fr_2fr_80px_55px_55px_55px] gap-4 px-6 py-4 items-center border-b border-[#C87D87]/6 last:border-0 ${u.suspended?'opacity-40':''}`}
                         style={{ animation:`fadeUp .22s ease ${i*22}ms both` }}>
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0 ${u.role==='admin'?'bg-[#6B7556]':'bg-[#C87D87]'}`}>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0 overflow-hidden ${u.role==='admin'?'bg-[#6B7556]':'bg-[#C87D87]'}`}>
                             {u.avatarUrl
-                              ? <img src={u.avatarUrl} alt={u.fullName} className="w-full h-full object-cover rounded-full"/>
+                              ? <img src={resolveAvatar(u.avatarUrl)} alt={u.fullName} className="w-full h-full object-cover rounded-full"/>  
                               : u.fullName?.charAt(0).toUpperCase()
                             }
                           </div>
@@ -742,7 +753,7 @@ export default function Admin() {
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div className="w-7 h-7 rounded-full bg-[#C87D87]/15 flex items-center justify-center text-[#C87D87] font-bold text-xs flex-shrink-0 overflow-hidden">
                           {p.user?.avatarUrl
-                            ? <img src={p.user.avatarUrl} alt="" className="w-full h-full object-cover"/>
+                            ? <img src={resolveAvatar(p.user.avatarUrl)} alt="" className="w-full h-full object-cover"/> 
                             : (p.user?.fullName||p.fullName||'?').charAt(0).toUpperCase()
                           }
                         </div>
@@ -784,7 +795,7 @@ export default function Admin() {
                           <div className="flex items-center gap-3 mb-3">
                             <div className="w-8 h-8 rounded-full bg-[#C87D87]/15 flex items-center justify-center text-[#C87D87] font-bold text-sm flex-shrink-0 overflow-hidden">
                               {r.user.avatarUrl
-                                ? <img src={r.user.avatarUrl} alt="" className="w-full h-full object-cover"/>
+                                ? <img src={resolveAvatar(r.user.avatarUrl)} alt="" className="w-full h-full object-cover"/>  
                                 : r.user.fullName.charAt(0).toUpperCase()
                               }
                             </div>
@@ -816,7 +827,7 @@ export default function Admin() {
                           <div className="flex items-center gap-3 mb-3">
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6B7556] to-[#C87D87] flex items-center justify-center text-white font-bold text-sm flex-shrink-0 overflow-hidden">
                               {r.user.avatarUrl
-                                ? <img src={r.user.avatarUrl} alt="" className="w-full h-full object-cover"/>
+                                ? <img src={resolveAvatar(r.user.avatarUrl)} alt="" className="w-full h-full object-cover"/>  
                                 : r.user.fullName.charAt(0).toUpperCase()
                               }
                             </div>
@@ -853,7 +864,7 @@ export default function Admin() {
                     <div className="flex items-center gap-6">
                       <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-[#C87D87]/25 flex-shrink-0 bg-[#C87D87]/10 flex items-center justify-center">
                         {avatarUrl
-                          ? <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover"/>
+                          ? <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover"/>  
                           : <span className="font-['Playfair_Display',serif] italic text-3xl text-[#C87D87]">{displayName.charAt(0).toUpperCase()}</span>
                         }
                       </div>
@@ -938,8 +949,8 @@ export default function Admin() {
                   </div>
                 </Panel>
 
-                {/* Danger — Delete Account */}
-                <Panel className="border-red-200/50!">
+                {/* Danger Zone */}
+                <Panel>
                   <div className="px-7 py-5">
                     <p className="font-['Cormorant_Garamond',serif] italic text-[0.6rem] tracking-[0.3em] uppercase text-red-400/60 mb-1">Danger Zone</p>
                     {!showDelete ? (
@@ -981,7 +992,7 @@ export default function Admin() {
         </main>
 
         {/* ═══════════════════════════════════════
-            BOOKING DETAIL — HORIZONTAL MODAL
+            BOOKING DETAIL MODAL
         ═══════════════════════════════════════ */}
         {selectedBooking && (() => {
           const b           = selectedBooking;
@@ -1012,7 +1023,6 @@ export default function Admin() {
           return (
             <div className="bmodal-bg fixed inset-0 z-50 flex items-center justify-center p-6"
               onClick={() => setSelectedBooking(null)}>
-              {/* ── HORIZONTAL container: max-w-4xl, two columns ── */}
               <div className="w-full max-w-4xl" onClick={e => e.stopPropagation()}
                 style={{ animation:'slideUp .35s cubic-bezier(.4,0,.2,1) both' }}>
                 <div className="bg-[#fef6ec] rounded-2xl overflow-hidden shadow-[0_32px_80px_rgba(58,48,39,0.35)] border border-[#C87D87]/20 relative flex flex-col md:flex-row">
@@ -1020,7 +1030,6 @@ export default function Admin() {
                   <div className="absolute top-0 left-0 z-20"><LaceCorner/></div>
                   <div className="absolute top-0 right-0 z-20"><LaceCorner flip/></div>
 
-                  {/* ── LEFT COLUMN — image + status + actions ── */}
                   <div className="md:w-72 flex-shrink-0 flex flex-col">
                     <div className="relative h-48 md:h-56 overflow-hidden">
                       <img src={img} alt={b.activity} className="w-full h-full object-cover"/>
@@ -1040,7 +1049,6 @@ export default function Admin() {
                       </div>
                     </div>
 
-                    {/* Total + actions */}
                     <div className="p-5 flex-1 flex flex-col justify-between border-t border-[#C87D87]/10 md:border-t-0 md:border-r md:border-r-[#C87D87]/10">
                       <div className="bg-[#6B7556]/10 border border-[#6B7556]/20 rounded-xl px-4 py-3 mb-4">
                         <p className="font-['Cormorant_Garamond',serif] text-[0.58rem] tracking-widest uppercase text-[#7a6a5a]/50 mb-0.5">Total</p>
@@ -1084,7 +1092,6 @@ export default function Admin() {
                     </div>
                   </div>
 
-                  {/* ── RIGHT COLUMN — booking details ── */}
                   <div className="flex-1 overflow-y-auto max-h-[80vh] pt-6 pb-4">
                     <p className="font-['Cormorant_Garamond',serif] italic text-[0.55rem] tracking-[0.3em] uppercase text-[#C87D87]/55 px-6 mb-3">Booking Details</p>
                     <div className="px-6">

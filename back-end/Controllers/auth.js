@@ -270,3 +270,54 @@ export const toggleSuspendUser = async (req, res) => {
     res.status(500).json({ message: 'Something went wrong' });
   }
 };
+// PATCH /api/auth/update-name
+export const updateName = async (req, res) => {
+  try {
+    const { fullName } = req.body;
+    if (!fullName?.trim()) return res.status(400).json({ message: 'Name is required.' });
+    const updated = await prisma.user.update({ where: { id: req.user.id }, data: { fullName } });
+    res.json({ message: 'Name updated.', fullName: updated.fullName });
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Something went wrong.' }); }
+};
+
+// PATCH /api/auth/update-email
+export const updateEmail = async (req, res) => {
+  try {
+    const { email, currentPassword } = req.body;
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    const valid = await bcrypt.compare(currentPassword, user.password);
+    if (!valid) return res.status(400).json({ message: 'Incorrect password.' });
+    const exists = await prisma.user.findFirst({ where: { email, NOT: { id: req.user.id } } });
+    if (exists) return res.status(400).json({ message: 'Email already in use.' });
+    await prisma.user.update({ where: { id: req.user.id }, data: { email } });
+    res.json({ message: 'Email updated.' });
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Something went wrong.' }); }
+};
+
+// PATCH /api/auth/update-password
+export const updatePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    const valid = await bcrypt.compare(currentPassword, user.password);
+    if (!valid) return res.status(400).json({ message: 'Incorrect current password.' });
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({ where: { id: req.user.id }, data: { password: hashed } });
+    res.json({ message: 'Password updated.' });
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Something went wrong.' }); }
+};
+
+// DELETE /api/auth/delete-account
+export const deleteAccount = async (req, res) => {
+  try {
+    const { password, adminCode } = req.body;
+    if (adminCode !== process.env.ADMIN_SECRET_CODE)
+      return res.status(403).json({ message: 'Invalid admin code.' });
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) return res.status(400).json({ message: 'Incorrect password.' });
+    await prisma.user.update({ where: { id: req.user.id }, data: { isDeleted: true } });
+    res.clearCookie('token');
+    res.json({ message: 'Account deleted.' });
+  } catch (e) { console.error(e); res.status(500).json({ message: 'Something went wrong.' }); }
+};

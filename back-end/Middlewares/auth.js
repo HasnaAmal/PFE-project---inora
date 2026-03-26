@@ -14,11 +14,10 @@ export default async function auth(req, res, next) {
       where: { id: decoded.id }
     });
 
-    if (!user) {
-      return res.status(401).json({ message: 'User not found' });
+    if (!user || user.isDeleted) {
+      return res.status(401).json({ message: 'Account not found.' });
     }
 
-    // ✅ block suspended users from all protected routes
     if (user.suspended) {
       return res.status(403).json({
         message: 'Your account has been suspended. Please contact support.'

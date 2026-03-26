@@ -8,7 +8,8 @@ import {
   logout,
   getMe,
   getAdminUsers,     // ✅ add
-  toggleSuspendUser  // ✅ add
+  toggleSuspendUser,  // ✅ add
+  updateName, updateEmail, updatePassword, deleteAccount
 } from '../Controllers/auth.js';
 
 import { validations, errorValidatorHandler } from '../Middlewares/Validations.js';
@@ -20,7 +21,10 @@ router.post("/reset-password", validations.resetPassword,  errorValidatorHandler
 router.post("/forgot-password",validations.forgotPassword, errorValidatorHandler, forgotPassword);
 router.post("/logout",         logout);
 router.get('/me',              getMe);
-
+router.patch('/update-name',     auth, updateName);
+router.patch('/update-email',    auth, updateEmail);
+router.patch('/update-password', auth, updatePassword);
+router.delete('/delete-account', auth, deleteAccount);
 // ✅ admin routes
 router.get('/admin/users',               auth, getAdminUsers);
 router.patch('/admin/users/:id/suspend', auth, toggleSuspendUser);

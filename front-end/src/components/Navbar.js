@@ -12,8 +12,8 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  const [notifications,    setNotifications]    = useState([]);
-  const [notifOpen,        setNotifOpen]        = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [notifOpen,     setNotifOpen]     = useState(false);
   const notifRef = useRef(null);
 
   const isAdmin      = user?.role === 'admin';
@@ -46,7 +46,7 @@ export default function Navbar() {
   useEffect(() => {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false);
-      if (notifRef.current  && !notifRef.current.contains(e.target))  setNotifOpen(false);
+      if (notifRef.current  && !notifRef.current.contains(e.target))      setNotifOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -72,11 +72,19 @@ export default function Navbar() {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
+  // ✅ Marks as read then goes to checkout — works even after read
   const handleCheckout = async (notif) => {
     await markAsRead(notif.id);
     setNotifOpen(false);
     setDropdownOpen(false);
     router.push(`/checkout?bookingId=${notif.bookingId}`);
+  };
+
+  // ✅ Marks as read then goes to review form with bookingId
+  const handleReview = async (notif) => {
+    await markAsRead(notif.id);
+    setNotifOpen(false);
+    router.push(`/reviews/new?bookingId=${notif.bookingId}`);
   };
 
   if (loading) return null;
@@ -114,19 +122,19 @@ export default function Navbar() {
           : 'bg-[#6B7556]/90 backdrop-blur-sm border-b border-[#C87D87]/10 py-4'
       }`}>
 
-        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#C87D87]/60 to-transparent pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#C87D87]/40 to-transparent pointer-events-none" />
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#C87D87]/60 to-transparent pointer-events-none"/>
+        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#C87D87]/40 to-transparent pointer-events-none"/>
 
         {[
-          { pos: 'top-0 left-0',     rot: 'rotate-0'   },
-          { pos: 'top-0 right-0',    rot: 'rotate-90'  },
-          { pos: 'bottom-0 right-0', rot: 'rotate-180' },
-          { pos: 'bottom-0 left-0',  rot: '-rotate-90' },
+          { pos:'top-0 left-0',     rot:'rotate-0'   },
+          { pos:'top-0 right-0',    rot:'rotate-90'  },
+          { pos:'bottom-0 right-0', rot:'rotate-180' },
+          { pos:'bottom-0 left-0',  rot:'-rotate-90' },
         ].map(({ pos, rot }, i) => (
           <div key={i} className={`absolute ${pos} w-10 h-10 pointer-events-none overflow-hidden`}>
             <svg width="40" height="40" viewBox="0 0 40 40" fill="none" className={rot}>
-              <line x1="0"  y1="1"  x2="20" y2="1"  stroke="#C87D87" strokeWidth="0.9" strokeOpacity="0.55"/>
-              <line x1="1"  y1="0"  x2="1"  y2="20" stroke="#C87D87" strokeWidth="0.9" strokeOpacity="0.55"/>
+              <line x1="0"  y1="1"  x2="20" y2="1"  stroke="#C87D87" strokeWidth="0.9"  strokeOpacity="0.55"/>
+              <line x1="1"  y1="0"  x2="1"  y2="20" stroke="#C87D87" strokeWidth="0.9"  strokeOpacity="0.55"/>
               <line x1="4"  y1="6"  x2="15" y2="6"  stroke="#C87D87" strokeWidth="0.55" strokeOpacity="0.38"/>
               <line x1="6"  y1="4"  x2="6"  y2="15" stroke="#C87D87" strokeWidth="0.55" strokeOpacity="0.38"/>
               <rect x="2.5" y="2.5" width="6" height="6" transform="rotate(45 5.5 5.5)"
@@ -136,20 +144,20 @@ export default function Navbar() {
                 fill="none" stroke="#C87D87" strokeWidth="0.45" strokeOpacity="0.35"/>
               <rect x="2" y="11" width="3.5" height="3.5" transform="rotate(45 3.75 12.75)"
                 fill="none" stroke="#C87D87" strokeWidth="0.45" strokeOpacity="0.35"/>
-              <circle cx="10" cy="6" r="0.8" fill="#C87D87" fillOpacity="0.22"/>
-              <circle cx="14" cy="6" r="0.6" fill="#C87D87" fillOpacity="0.16"/>
+              <circle cx="10" cy="6"  r="0.8" fill="#C87D87" fillOpacity="0.22"/>
+              <circle cx="14" cy="6"  r="0.6" fill="#C87D87" fillOpacity="0.16"/>
               <circle cx="6"  cy="10" r="0.8" fill="#C87D87" fillOpacity="0.22"/>
               <circle cx="6"  cy="14" r="0.6" fill="#C87D87" fillOpacity="0.16"/>
-              {[8,12,16].map((x,j)=>(
+              {[8,12,16].map((x,j) => (
                 <line key={j} x1={x} y1="1" x2={x} y2={j%2===0?4:3} stroke="#C87D87" strokeWidth="0.45" strokeOpacity="0.28"/>
               ))}
-              {[8,12,16].map((y,j)=>(
+              {[8,12,16].map((y,j) => (
                 <line key={j} x1="1" y1={y} x2={j%2===0?4:3} y2={y} stroke="#C87D87" strokeWidth="0.45" strokeOpacity="0.28"/>
               ))}
-              {[7,10,13,16].map((x,j)=>(
+              {[7,10,13,16].map((x,j) => (
                 <circle key={j} cx={x} cy="3.5" r="0.4" fill="#C87D87" fillOpacity={0.08+j*0.03}/>
               ))}
-              {[7,10,13,16].map((y,j)=>(
+              {[7,10,13,16].map((y,j) => (
                 <circle key={j} cx="3.5" cy={y} r="0.4" fill="#C87D87" fillOpacity={0.08+j*0.03}/>
               ))}
             </svg>
@@ -184,6 +192,7 @@ export default function Navbar() {
           <div className="w-10 h-px bg-gradient-to-l from-transparent to-[#C87D87]/25"/>
         </div>
 
+
         {/* ── NAV CONTENT ── */}
         <div className="max-w-7xl mx-auto flex justify-between items-center px-10">
 
@@ -201,8 +210,7 @@ export default function Navbar() {
               <li key={item} className="relative group">
                 <Link
                   href={item === 'Home' ? '/' : `#${item.toLowerCase()}`}
-                  className="font-['Cormorant_Garamond',serif] text-xs tracking-[0.22em] uppercase text-[#FBEAD6]/80 hover:text-[#C87D87] transition-colors duration-300"
-                >
+                  className="font-['Cormorant_Garamond',serif] text-xs tracking-[0.22em] uppercase text-[#FBEAD6]/80 hover:text-[#C87D87] transition-colors duration-300">
                   {item}
                 </Link>
                 <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-px bg-[#C87D87] group-hover:w-full transition-all duration-300"/>
@@ -250,7 +258,6 @@ export default function Navbar() {
                     <div className="dropdown-anim absolute right-0 mt-2.5 w-[22rem] z-[100] rounded-2xl overflow-hidden border border-[#C87D87]/20 shadow-[0_16px_48px_rgba(58,48,39,0.18)]"
                       style={{ background:'#FBEAD6' }}>
 
-                      {/* Top accent line */}
                       <div className="h-0.5 bg-gradient-to-r from-transparent via-[#C87D87]/60 to-transparent"/>
 
                       {/* Header */}
@@ -294,11 +301,10 @@ export default function Navbar() {
                           notifications.map(notif => (
                             <div key={notif.id}
                               className={`px-4 py-3.5 transition-colors duration-200 ${
-                                !notif.read
-                                  ? 'bg-[#C87D87]/8'
-                                  : 'hover:bg-[#C87D87]/5'
+                                !notif.read ? 'bg-[#C87D87]/8' : 'hover:bg-[#C87D87]/5'
                               }`}>
                               <div className="flex items-start gap-3">
+
                                 {/* Icon badge */}
                                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 border ${
                                   notif.type === 'REVIEW_REQUEST'
@@ -331,7 +337,8 @@ export default function Navbar() {
                                     {new Date(notif.createdAt).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}
                                   </p>
 
-                                  {notif.type === 'BOOKING_CONFIRMED' && !notif.read && (
+                                  {/* ✅ Checkout button — always visible for BOOKING_CONFIRMED */}
+                                  {notif.type === 'BOOKING_CONFIRMED' && (
                                     <button onClick={() => handleCheckout(notif)}
                                       className="mt-2.5 w-full font-['Cormorant_Garamond',serif] text-[0.6rem] tracking-[0.15em] uppercase text-[#FBEAD6] bg-[#6B7556] px-3 py-2 rounded-xl hover:bg-[#4a5240] transition-all duration-300 flex items-center justify-center gap-1.5 shadow-[0_2px_10px_rgba(107,117,86,0.22)]">
                                       <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -341,13 +348,9 @@ export default function Navbar() {
                                     </button>
                                   )}
 
+                                  {/* ✅ Review button — with bookingId passed */}
                                   {notif.type === 'REVIEW_REQUEST' && (
-                                    <button
-                                      onClick={async () => {
-                                        await markAsRead(notif.id);
-                                        setNotifOpen(false);
-                                        router.push('/reviews/new');
-                                      }}
+                                    <button onClick={() => handleReview(notif)}
                                       className="mt-2.5 w-full font-['Cormorant_Garamond',serif] text-[0.6rem] tracking-[0.15em] uppercase text-[#FBEAD6] bg-[#C87D87] px-3 py-2 rounded-xl hover:bg-[#a85e6a] transition-all duration-300 flex items-center justify-center gap-1.5 shadow-[0_2px_10px_rgba(200,125,135,0.22)]">
                                       <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.563.563 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/>
@@ -355,6 +358,7 @@ export default function Navbar() {
                                       Laisser un avis →
                                     </button>
                                   )}
+
                                 </div>
                               </div>
                             </div>
@@ -402,10 +406,9 @@ export default function Navbar() {
                   <div className="dropdown-anim absolute top-full right-0 mt-2.5 w-60 z-[100] rounded-2xl overflow-hidden border border-[#C87D87]/20 shadow-[0_16px_48px_rgba(58,48,39,0.18)]"
                     style={{ background:'#FBEAD6' }}>
 
-                    {/* Top accent line */}
                     <div className="h-0.5 bg-gradient-to-r from-transparent via-[#C87D87]/60 to-transparent"/>
 
-                    {/* User info row */}
+                    {/* User info */}
                     <div className="px-4 py-3.5 border-b border-[#C87D87]/15 flex items-center gap-3"
                       style={{ background:'linear-gradient(135deg,#FBEAD6 0%,rgba(200,125,135,0.06) 100%)' }}>
                       {avatarUrl ? (
@@ -487,6 +490,7 @@ export default function Navbar() {
                   </div>
                 )}
               </div>
+
             </div>
 
           ) : (

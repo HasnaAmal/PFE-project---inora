@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma.js';
 import { transporter } from "../lib/mailer.js";
 import jwt from 'jsonwebtoken';
 
+
 export const register = async (req, res) => {
   try {
     const { fullName, email, password, adminCode } = req.body;
@@ -31,6 +32,7 @@ export const register = async (req, res) => {
   }
 };
 
+
 export const login = async (req, res) => {
   try {
     const { email, password, role, adminCode } = req.body;
@@ -41,7 +43,12 @@ export const login = async (req, res) => {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(400).json({ message: 'Invalid password' });
 
-    // ✅ block suspended users from logging in
+    // ✅ FIX 1 — block deleted accounts from logging in
+    if (user.isDeleted) {
+      return res.status(403).json({ message: 'This account no longer exists.' });
+    }
+
+    // block suspended users
     if (user.suspended) {
       return res.status(403).json({
         message: 'Your account has been suspended. Please contact support.'
@@ -90,6 +97,7 @@ export const login = async (req, res) => {
   }
 };
 
+
 export const resetPassword = async (req, res) => {
   try {
     const { token, password } = req.body;
@@ -98,6 +106,9 @@ export const resetPassword = async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_RESET_SECRET);
     const user = await prisma.user.findUnique({ where: { id: decoded.id } });
     if (!user) return res.status(400).json({ message: 'Invalid token' });
+
+    // ✅ also block deleted users from resetting password
+    if (user.isDeleted) return res.status(403).json({ message: 'This account no longer exists.' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     await prisma.user.update({
@@ -117,12 +128,14 @@ export const resetPassword = async (req, res) => {
   }
 };
 
+
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await prisma.user.findFirst({ where: { email } });
 
-    if (!user) {
+    // ✅ silently skip deleted users — same generic response to avoid leaking info
+    if (!user || user.isDeleted) {
       return res.status(200).json({ message: "If the email exists, a reset link has been sent" });
     }
 
@@ -158,6 +171,7 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
+
 export const logout = async (req, res) => {
   try {
     res.clearCookie("token");
@@ -167,6 +181,7 @@ export const logout = async (req, res) => {
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
+
 
 export const getMe = async (req, res) => {
   try {
@@ -183,8 +198,21 @@ export const getMe = async (req, res) => {
         role:      true,
         avatarUrl: true,
         createdAt: true,
+        isDeleted: true,   // ✅ FIX 2 — fetch the flag
+        suspended: true,
       }
     });
+
+    // ✅ FIX 2 — kick out deleted/suspended users mid-session
+    if (!user || user.isDeleted) {
+      res.clearCookie("token");
+      return res.status(401).json({ message: 'Account not found.' });
+    }
+
+    if (user.suspended) {
+      res.clearCookie("token");
+      return res.status(403).json({ message: 'Your account has been suspended.' });
+    }
 
     res.json({ user });
   } catch (error) {
@@ -192,6 +220,7 @@ export const getMe = async (req, res) => {
     res.status(401).json({ message: 'Invalid token' });
   }
 };
+
 
 export const getAdminUsers = async (req, res) => {
   try {
@@ -204,12 +233,13 @@ export const getAdminUsers = async (req, res) => {
         email:     true,
         role:      true,
         suspended: true,
+        isDeleted: true,   // ✅ include so admin UI can show the Deleted badge
         createdAt: true,
         _count: {
           select: {
-bookings:      true,
-            reviews:           true,
-            conversations:     true,
+            bookings:      true,
+            reviews:       true,
+            conversations: true,
           }
         }
       },
@@ -222,6 +252,7 @@ bookings:      true,
     res.status(500).json({ message: 'Something went wrong' });
   }
 };
+
 
 export const toggleSuspendUser = async (req, res) => {
   try {

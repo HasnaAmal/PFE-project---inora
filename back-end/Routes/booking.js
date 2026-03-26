@@ -4,8 +4,6 @@ import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
-// ── Middleware helpers ──────────────────────────────────────────────
-
 const isAdmin = async (req, res, next) => {
   try {
     const token = req.cookies.token;
@@ -33,8 +31,6 @@ const getLoggedInUser = async (req) => {
   }
 };
 
-// ── Routes (order matters!) ─────────────────────────────────────────
-
 // ✅ 1. GET /api/bookings/my
 router.get('/my', async (req, res) => {
   try {
@@ -53,12 +49,20 @@ router.get('/my', async (req, res) => {
   }
 });
 
-// ✅ 2. GET /api/bookings/paid — admin only  ← MUST be before /:id
+// ✅ 2. GET /api/bookings/paid — admin only
 router.get('/paid', isAdmin, async (req, res) => {
   try {
     const paid = await prisma.booking.findMany({
       where: { paymentStatus: 'PAID' },
-      include: { user: { select: { fullName: true, email: true } } },
+      include: {
+        user: {
+          select: {
+            fullName:  true,
+            email:     true,
+            isDeleted: true, // ← added
+          }
+        }
+      },
       orderBy: { paidAt: 'desc' },
     });
     res.json(paid);
@@ -73,7 +77,15 @@ router.get('/', isAdmin, async (req, res) => {
   try {
     const bookings = await prisma.booking.findMany({
       orderBy: { createdAt: 'desc' },
-      include: { user: { select: { fullName: true, email: true } } },
+      include: {
+        user: {
+          select: {
+            fullName:  true,
+            email:     true,
+            isDeleted: true, // ← added
+          }
+        }
+      },
     });
     res.json(bookings);
   } catch (err) {
@@ -104,15 +116,18 @@ router.post('/', async (req, res) => {
         fullName:         bookingData.fullName,
         email:            bookingData.email,
         phone:            bookingData.phone,
-        activity:         bookingData.activity || bookingData.activityType || 'Non spécifié',
+        activity:         bookingData.activity || 'Non spécifié',
         participants:     parseInt(bookingData.participants) || 1,
         date:             bookingData.date ? new Date(bookingData.date) : null,
-        timeSlot:         bookingData.timeSlot || null,
-        allergies:        bookingData.allergies || null,
-        specialRequests:  bookingData.specialRequests || null,
-        additionalNotes:  bookingData.additionalNotes || null,
+        timeSlot:         bookingData.timeSlot         || null,
+        setting:          bookingData.setting          || null,
+        allergies:        bookingData.allergies        || null,
+        specialRequests:  bookingData.specialRequests  || null,
+        additionalNotes:  bookingData.additionalNotes  || null,
         preferredContact: bookingData.preferredContact || 'telephone',
-        activityTheme:    bookingData.activityTheme || null,
+        activityTheme:    bookingData.activityTheme    || null,
+        isDraft:          bookingData.isDraft ?? false,
+        status:           'pending',
         userId:           userId,
       },
     });
@@ -150,6 +165,27 @@ router.get('/:id', async (req, res) => {
   } catch (err) {
     console.error('GET /bookings/:id error:', err);
     res.status(500).json({ message: 'Erreur serveur' });
+  }
+});
+
+// ✅ PATCH /api/bookings/:id/submit — promote draft → pending
+router.patch('/:id/submit', async (req, res) => {
+  const bookingId = parseInt(req.params.id);
+  if (isNaN(bookingId)) return res.status(400).json({ message: 'Invalid booking ID' });
+
+  try {
+    const user = await getLoggedInUser(req);
+    if (!user) return res.status(401).json({ message: 'Non autorisé' });
+
+    const booking = await prisma.booking.update({
+      where: { id: bookingId, userId: user.id },
+      data:  { isDraft: false, status: 'pending' },
+    });
+
+    res.json(booking);
+  } catch (err) {
+    console.error('PATCH /bookings/:id/submit error:', err);
+    res.status(500).json({ message: 'Erreur lors de la soumission' });
   }
 });
 
@@ -208,41 +244,40 @@ router.patch('/:id/status', isAdmin, async (req, res) => {
         console.warn(`⚠️ No user found for booking ${bookingId} — no notification sent`);
       }
     }
+
     if (status === 'completed') {
-  let targetUserId = booking.userId; // ← booking is already updated here, this is fine
+      let targetUserId = booking.userId;
 
-  if (!targetUserId && booking.email) {
-    const userByEmail = await prisma.user.findUnique({
-      where: { email: booking.email },
-    });
-    targetUserId = userByEmail?.id ?? null;
+      if (!targetUserId && booking.email) {
+        const userByEmail = await prisma.user.findUnique({
+          where: { email: booking.email },
+        });
+        targetUserId = userByEmail?.id ?? null;
 
-    // ✅ also link user to booking if found (same as confirmed block)
-    if (targetUserId) {
-      await prisma.booking.update({
-        where: { id: bookingId },
-        data:  { userId: targetUserId },
-      });
+        if (targetUserId) {
+          await prisma.booking.update({
+            where: { id: bookingId },
+            data:  { userId: targetUserId },
+          });
+        }
+      }
+
+      if (targetUserId) {
+        await prisma.notification.create({
+          data: {
+            userId:    targetUserId,
+            type:      'REVIEW_REQUEST',
+            title:     "✨ How was your experience?",
+            message:   `Your "${booking.activity || 'gathering'}" is complete! Share your thoughts and help our community grow.`,
+            bookingId: booking.id,
+            read:      false,
+          },
+        });
+        console.log(`✅ Review-request notification sent to userId: ${targetUserId}`);
+      } else {
+        console.warn(`⚠️ No user found for booking ${bookingId} — review notification not sent`);
+      }
     }
-  }
-
-  if (targetUserId) {
-    await prisma.notification.create({
-      data: {
-        userId:    targetUserId,
-        type:      'REVIEW_REQUEST',
-        title:     "✨ How was your experience?",
-        message:   `Your "${booking.activity || 'gathering'}" is complete! Share your thoughts and help our community grow.`,
-        bookingId: booking.id,
-        read:      false,
-      },
-    });
-    console.log(`✅ Review-request notification sent to userId: ${targetUserId}`);
-  } else {
-    console.warn(`⚠️ No user found for booking ${bookingId} — review notification not sent`);
-  }
-}
-
 
     res.json(booking);
   } catch (err) {
@@ -250,6 +285,7 @@ router.patch('/:id/status', isAdmin, async (req, res) => {
     res.status(500).json({ message: 'Failed to update status' });
   }
 });
+
 // ✅ DELETE /api/bookings/:id — admin deletes a booking
 router.delete('/:id', isAdmin, async (req, res) => {
   const bookingId = parseInt(req.params.id);

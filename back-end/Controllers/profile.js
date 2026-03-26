@@ -127,3 +127,85 @@ export const updateMyAvatar = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+// POST /api/profile/me/verify-password
+export const verifyMyPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    if (!password) return res.status(400).json({ message: 'Password is required' });
+
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) return res.status(401).json({ message: 'Incorrect password' });
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// DELETE /api/profile/me
+export const deleteMyAccount = async (req, res) => {
+  try {
+    const { password } = req.body;
+    if (!password) return res.status(400).json({ message: 'Password is required' });
+
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) return res.status(401).json({ message: 'Incorrect password' });
+
+    await prisma.user.update({
+      where: { id: req.user.id },
+      data: {
+        isDeleted: true,
+        deletedAt: new Date(),
+      },
+    });
+
+    res.clearCookie('token'); // use your actual cookie name
+    res.json({ message: 'Account deleted' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+// PATCH /api/profile/me/bookings/:id/cancel
+export const cancelMyBooking = async (req, res) => {
+  try {
+    const bookingId = parseInt(req.params.id);
+
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+    });
+
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+    // Make sure it belongs to this user
+    if (booking.userId !== req.user.id)
+      return res.status(403).json({ message: 'Not authorized' });
+
+    // Only allow cancelling pending or confirmed+unpaid bookings
+    const cancellable =
+      booking.status === 'pending' ||
+      (booking.status === 'confirmed' && booking.paymentStatus !== 'PAID');
+
+    if (!cancellable)
+      return res.status(400).json({
+        message: 'This booking cannot be cancelled.',
+      });
+
+    const updated = await prisma.booking.update({
+      where: { id: bookingId },
+      data:  { status: 'cancelled' },
+    });
+
+    res.json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

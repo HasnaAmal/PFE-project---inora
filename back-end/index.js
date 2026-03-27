@@ -13,7 +13,7 @@ import reviewRoutes from './Routes/reviews.js';
 import profile from './Routes/profile.js';
 import bookingRoutes from './Routes/booking.js';
 import notificationsRouter from './Routes/notifications.js';
-import paymentRoutes from './Routes/payment.js';
+//import paymentRoutes from './Routes/payment.js';
 
 //import chat from './Routes/chat.js';        
 
@@ -145,7 +145,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/profile', profile);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/notifications', notificationsRouter);
-app.use('/api/payments', paymentRoutes);
+//app.use('/api/payments', paymentRoutes);
 //app.use('/api/chat', chat);  // ← uncomment when chat route is ready
 
 // 404 handler

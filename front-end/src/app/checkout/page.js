@@ -13,6 +13,8 @@ import {
   useElements,
 } from '@stripe/react-stripe-js';
 export const dynamic = 'force-dynamic'; 
+export const runtime = 'edge';
+export const fetchCache = 'force-no-store';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 const PRICE_PER_PERSON = 150;

@@ -427,4 +427,4 @@ export const deleteAccount = async (req, res) => {
     console.error(e);
     res.status(500).json({ message: 'Something went wrong.' });
   }
-};
+};// force redeploy Sat Mar 28 22:33:21 +01 2026

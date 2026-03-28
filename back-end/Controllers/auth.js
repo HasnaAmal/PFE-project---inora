@@ -3,7 +3,33 @@ import { prisma } from '../lib/prisma.js';
 import { transporter } from "../lib/mailer.js";
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 
+// ══════════════════════════════════════════
+//  MULTER — avatar upload config
+// ══════════════════════════════════════════
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = 'uploads/avatars';
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `avatar-${req.user.id}-${Date.now()}${ext}`);
+  },
+});
+const fileFilter = (req, file, cb) => {
+  const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  allowed.includes(file.mimetype) ? cb(null, true) : cb(new Error('Only images allowed'));
+};
+export const upload = multer({ storage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } });
+
+// ══════════════════════════════════════════
+//  REGISTER
+// ══════════════════════════════════════════
 export const register = async (req, res) => {
   try {
     const { fullName, email, password, adminCode } = req.body;
@@ -38,6 +64,9 @@ export const register = async (req, res) => {
   }
 };
 
+// ══════════════════════════════════════════
+//  LOGIN
+// ══════════════════════════════════════════
 export const login = async (req, res) => {
   try {
     const { email, password, role, adminCode } = req.body;
@@ -56,9 +85,17 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: 'Invalid password' });
     }
 
+    if (user.isDeleted) {
+      return res.status(403).json({ message: 'This account no longer exists.' });
+    }
+
     if (user.suspended) {
       console.log('❌ Account suspended:', email);
       return res.status(403).json({ message: 'Account suspended' });
+    }
+
+    if (role && user.role !== role) {
+      return res.status(403).json({ message: `You are not registered as ${role}` });
     }
 
     if (role === 'admin') {
@@ -96,6 +133,22 @@ export const login = async (req, res) => {
   }
 };
 
+// ══════════════════════════════════════════
+//  LOGOUT
+// ══════════════════════════════════════════
+export const logout = async (req, res) => {
+  try {
+    res.clearCookie("token");
+    return res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+// ══════════════════════════════════════════
+//  GET ME
+// ══════════════════════════════════════════
 export const getMe = async (req, res) => {
   try {
     const token = req.cookies.token;
@@ -133,6 +186,9 @@ export const getMe = async (req, res) => {
   }
 };
 
+// ══════════════════════════════════════════
+//  FORGOT PASSWORD
+// ══════════════════════════════════════════
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -174,6 +230,9 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
+// ══════════════════════════════════════════
+//  RESET PASSWORD
+// ══════════════════════════════════════════
 export const resetPassword = async (req, res) => {
   try {
     const { token, password } = req.body;
@@ -203,16 +262,9 @@ export const resetPassword = async (req, res) => {
   }
 };
 
-export const logout = async (req, res) => {
-  try {
-    res.clearCookie("token");
-    return res.status(200).json({ message: "Logged out successfully" });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Something went wrong" });
-  }
-};
-
+// ══════════════════════════════════════════
+//  ADMIN — GET ALL USERS
+// ══════════════════════════════════════════
 export const getAdminUsers = async (req, res) => {
   try {
     if (req.user.role !== 'admin') return res.status(403).json({ message: 'Forbidden' });
@@ -245,6 +297,9 @@ export const getAdminUsers = async (req, res) => {
   }
 };
 
+// ══════════════════════════════════════════
+//  ADMIN — SUSPEND / UNSUSPEND USER
+// ══════════════════════════════════════════
 export const toggleSuspendUser = async (req, res) => {
   try {
     if (req.user.role !== 'admin') return res.status(403).json({ message: 'Forbidden' });
@@ -259,5 +314,117 @@ export const toggleSuspendUser = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Something went wrong' });
+  }
+};
+
+// ══════════════════════════════════════════
+//  PROFILE — UPDATE AVATAR
+// ══════════════════════════════════════════
+export const updateAvatar = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: 'No file uploaded.' });
+
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+
+    const current = await prisma.user.findUnique({
+      where:  { id: req.user.id },
+      select: { avatarUrl: true }
+    });
+    if (current?.avatarUrl) {
+      const oldPath = `.${current.avatarUrl}`;
+      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    }
+
+    await prisma.user.update({ where: { id: req.user.id }, data: { avatarUrl } });
+
+    res.json({ message: 'Avatar updated.', avatarUrl });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: 'Something went wrong.' });
+  }
+};
+
+// ══════════════════════════════════════════
+//  PROFILE — UPDATE NAME
+// ══════════════════════════════════════════
+export const updateName = async (req, res) => {
+  try {
+    const { fullName } = req.body;
+    if (!fullName?.trim()) return res.status(400).json({ message: 'Name is required.' });
+    const updated = await prisma.user.update({
+      where: { id: req.user.id },
+      data:  { fullName }
+    });
+    res.json({ message: 'Name updated.', fullName: updated.fullName });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: 'Something went wrong.' });
+  }
+};
+
+// ══════════════════════════════════════════
+//  PROFILE — UPDATE EMAIL
+// ══════════════════════════════════════════
+export const updateEmail = async (req, res) => {
+  try {
+    const { email, currentPassword } = req.body;
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+
+    const valid = await bcrypt.compare(currentPassword, user.password);
+    if (!valid) return res.status(400).json({ message: 'Incorrect password.' });
+
+    const exists = await prisma.user.findFirst({
+      where: { email, NOT: { id: req.user.id } }
+    });
+    if (exists) return res.status(400).json({ message: 'Email already in use.' });
+
+    await prisma.user.update({ where: { id: req.user.id }, data: { email } });
+    res.json({ message: 'Email updated.' });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: 'Something went wrong.' });
+  }
+};
+
+// ══════════════════════════════════════════
+//  PROFILE — UPDATE PASSWORD
+// ══════════════════════════════════════════
+export const updatePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+
+    const valid = await bcrypt.compare(currentPassword, user.password);
+    if (!valid) return res.status(400).json({ message: 'Incorrect current password.' });
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({ where: { id: req.user.id }, data: { password: hashed } });
+    res.json({ message: 'Password updated.' });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: 'Something went wrong.' });
+  }
+};
+
+// ══════════════════════════════════════════
+//  PROFILE — DELETE ACCOUNT
+// ══════════════════════════════════════════
+export const deleteAccount = async (req, res) => {
+  try {
+    const { password, adminCode } = req.body;
+
+    if (adminCode !== process.env.ADMIN_SECRET_CODE)
+      return res.status(403).json({ message: 'Invalid admin code.' });
+
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) return res.status(400).json({ message: 'Incorrect password.' });
+
+    await prisma.user.update({ where: { id: req.user.id }, data: { isDeleted: true } });
+    res.clearCookie('token');
+    res.json({ message: 'Account deleted.' });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: 'Something went wrong.' });
   }
 };

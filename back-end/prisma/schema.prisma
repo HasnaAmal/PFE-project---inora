@@ -7,9 +7,6 @@ datasource db {
   provider = "postgresql"
 }
 
-<<<<<<< HEAD
-model Booking {
-=======
 // ─── Enums ───────────────────────────────────────────────────────
 enum Status {
   OPEN
@@ -100,73 +97,17 @@ model Booking {
   userId           String?
 
   // ── Core booking fields ──────────────────────────────────────
->>>>>>> b05bf10502448b989a690edb096c1d3463b02c38
   fullName         String
   email            String
   phone            String
   activity         String
-<<<<<<< HEAD
-  participants     Int            @default(1)
-=======
   participants     Int           @default(1)
->>>>>>> b05bf10502448b989a690edb096c1d3463b02c38
   date             DateTime?
   timeSlot         String?
   setting          String?       // ← NEW: venue/setting preference
   allergies        String?
   specialRequests  String?
   additionalNotes  String?
-<<<<<<< HEAD
-  preferredContact String         @default("telephone")
-  activityTheme    String?
-  createdAt        DateTime       @default(now())
-  status           String         @default("pending")
-  userId           String?
-  id               Int            @id @default(autoincrement())
-  advancePaid      Float?
-  paidAt           DateTime?
-  paymentStatus    String         @default("PENDING")
-  User             User?          @relation(fields: [userId], references: [id])
-  Notification     Notification[]
-  Review           Review?
-}
-
-model Conversation {
-  id                                  String    @id
-  userId                              String
-  subject                             String?
-  createdAt                           DateTime  @default(now())
-  updatedAt                           DateTime
-  claimedById                         String?
-  status                              Status    @default(OPEN)
-  User_Conversation_claimedByIdToUser User?     @relation("Conversation_claimedByIdToUser", fields: [claimedById], references: [id])
-  User_Conversation_userIdToUser      User      @relation("Conversation_userIdToUser", fields: [userId], references: [id])
-  Message                             Message[]
-}
-
-model Draft {
-  id          String   @id
-  userId      String
-  formData    Json
-  lastSavedAt DateTime
-  createdAt   DateTime @default(now())
-  User        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model Message {
-  id             String       @id
-  conversationId String
-  senderId       String
-  body           String
-  createdAt      DateTime     @default(now())
-  readAt         DateTime?
-  Conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  User           User         @relation(fields: [senderId], references: [id])
-}
-
-model Notification {
-  id        String   @id
-=======
   preferredContact String        @default("telephone")
   activityTheme    String?
 
@@ -195,7 +136,6 @@ model Notification {
 
 model Notification {
   id        String   @id @default(cuid())
->>>>>>> b05bf10502448b989a690edb096c1d3463b02c38
   userId    String
   bookingId Int?
   type      String
@@ -203,48 +143,7 @@ model Notification {
   message   String
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
-<<<<<<< HEAD
-  Booking   Booking? @relation(fields: [bookingId], references: [id])
-  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model Review {
-  id        String   @id
-  userId    String
-  comment   String
-  rating    Int
-  approved  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  bookingId Int?     @unique
-  Booking   Booking? @relation(fields: [bookingId], references: [id])
-  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model User {
-  id        String   @id @default(cuid())
-  fullName                                    String
-  email                                       String         @unique
-  password                                    String
-  createdAt                                   DateTime       @default(now())
-  role                                        String         @default("member")
-  avatarUrl                                   String?
-  suspended                                   Boolean        @default(false)
-  Booking                                     Booking[]
-  Conversation_Conversation_claimedByIdToUser Conversation[] @relation("Conversation_claimedByIdToUser")
-  Conversation_Conversation_userIdToUser      Conversation[] @relation("Conversation_userIdToUser")
-  Draft                                       Draft[]
-  Message                                     Message[]
-  Notification                                Notification[]
-  Review                                      Review[]
-}
-
-enum Status {
-  OPEN
-  CLOSED
-}
-=======
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
 }
->>>>>>> b05bf10502448b989a690edb096c1d3463b02c38

@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -31,14 +32,12 @@ const ACTIVITIES = [
   },
 ];
 
-// ✅ Now matches admin TIME_SLOTS exactly
 const TIME_SLOTS = [
   { id: 'morning',   label: 'Morning',   hours: '09:30 – 12:30', icon: '◎', sub: 'Soft light & fresh starts' },
   { id: 'afternoon', label: 'Afternoon', hours: '14:30 – 17:30', icon: '◈', sub: 'Golden hour creativity'    },
   { id: 'evening',   label: 'Evening',   hours: '19:30 – 22:30', icon: '◇', sub: 'Candlelit & intimate'      },
 ];
 
-// ✅ Now stores lowercase keys to match admin SETTINGS_MAP
 const SETTINGS = [
   { key: 'garden',   label: 'Sunlit Garden',    icon: '❧' },
   { key: 'indoor',   label: 'Cosy Indoor',       icon: '⌂' },
@@ -52,8 +51,8 @@ const EMPTY_FORM = {
   activity:         '',
   participants:     1,
   date:             '',
-  timeSlot:         '',   // stores hours string e.g. "09:30 – 12:30"
-  setting:          '',   // stores key e.g. "garden"
+  timeSlot:         '',
+  setting:          '',
   fullName:         '',
   email:            '',
   phone:            '',
@@ -65,7 +64,6 @@ const EMPTY_FORM = {
 };
 
 const STEPS = ['Activity', 'Details', 'Preferences', 'Review'];
-
 
 // ─── Draft hook ────────────────────────────────────────────────────
 function useDraft() {
@@ -117,7 +115,6 @@ function useDraft() {
 
   return { draftId, saving, lastSaved, loadDraft, saveDraft, submitBooking, deleteDraft };
 }
-
 
 // ─── UI helpers ────────────────────────────────────────────────────
 const inputClass = `w-full font-['Cormorant_Garamond',serif] italic text-base text-[#3a3027]
@@ -191,9 +188,8 @@ function LoadingScreen() {
   );
 }
 
-
-// ─── Page ──────────────────────────────────────────────────────────
-export default function BookPage() {
+// ─── Composant principal avec useSearchParams ───
+function BookContent() {
   const router       = useRouter();
   const searchParams = useSearchParams();
   const { user, loading } = useAuth();
@@ -232,42 +228,38 @@ export default function BookPage() {
     saveDraft(updated);
   };
 
-  // ✅ Fixed submit flow
- const handleSubmit = async () => {
-  setError(null);
-  setSubmitting(true);
-  try {
-    const res = await fetch(`${API}/api/bookings`, {
-      method:      'POST',
-      credentials: 'include',
-      headers:     { 'Content-Type': 'application/json' },
-      body:        JSON.stringify({ ...form, isDraft: true }),
-    });
+  const handleSubmit = async () => {
+    setError(null);
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${API}/api/bookings`, {
+        method:      'POST',
+        credentials: 'include',
+        headers:     { 'Content-Type': 'application/json' },
+        body:        JSON.stringify({ ...form, isDraft: true }),
+      });
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || data.error || 'Booking failed');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || data.error || 'Booking failed');
 
-    // ✅ unwrap { message, booking } shape
-    const booking = data.booking ?? data;
-    if (!booking?.id) throw new Error('No booking ID returned from server');
+      const booking = data.booking ?? data;
+      if (!booking?.id) throw new Error('No booking ID returned from server');
 
-    await submitBooking(booking.id);
-    await deleteDraft(draftId);
-router.push(`/booking-confirmed?bookingId=${booking.id}`);
-  } catch (err) {
-    setError(err.message);
-  } finally {
-    setSubmitting(false);
-  }
-};
-
+      await submitBooking(booking.id);
+      await deleteDraft(draftId);
+      router.push(`/booking-confirmed?bookingId=${booking.id}`);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (loading || !draftLoaded) return <LoadingScreen />;
   if (!user) return null;
 
   return (
     <div className="min-h-screen bg-[#FBEAD6] relative overflow-x-hidden">
-
       <style>{`
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(16px); }
@@ -283,7 +275,6 @@ router.push(`/booking-confirmed?bookingId=${booking.id}`);
         }}
       />
       <div className="fixed top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#C87D87]/40 to-transparent z-50"/>
-
 
       {/* ── Header ── */}
       <header className="sticky top-0 z-40 bg-[#FBEAD6]/90 backdrop-blur-md border-b border-[#C87D87]/12 px-6 py-3.5 flex items-center justify-between"
@@ -320,10 +311,8 @@ router.push(`/booking-confirmed?bookingId=${booking.id}`);
         </div>
       </header>
 
-
       {/* ── Main ── */}
       <main className="max-w-2xl mx-auto px-6 py-10 relative z-10">
-
 
         {/* ══ STEP 0 — Choose Activity ══ */}
         {step === 0 && (
@@ -359,7 +348,6 @@ router.push(`/booking-confirmed?bookingId=${booking.id}`);
             </div>
           </div>
         )}
-
 
         {/* ══ STEP 1 — Booking Details ══ */}
         {step === 1 && (
@@ -404,7 +392,7 @@ router.push(`/booking-confirmed?bookingId=${booking.id}`);
                   className={inputClass}/>
               </FormField>
 
-              {/* ✅ Fixed time slots — stores hours string */}
+              {/* Time slots */}
               <FormField label="Preferred Time">
                 <div className="flex flex-col gap-2">
                   {TIME_SLOTS.map(t => (
@@ -428,7 +416,7 @@ router.push(`/booking-confirmed?bookingId=${booking.id}`);
                 </div>
               </FormField>
 
-              {/* ✅ Fixed settings — stores lowercase key */}
+              {/* Settings */}
               <FormField label="Setting Preference">
                 <div className="grid grid-cols-2 gap-2">
                   {SETTINGS.map(s => (
@@ -454,7 +442,6 @@ router.push(`/booking-confirmed?bookingId=${booking.id}`);
             />
           </div>
         )}
-
 
         {/* ══ STEP 2 — Personal Info ══ */}
         {step === 2 && (
@@ -522,7 +509,6 @@ router.push(`/booking-confirmed?bookingId=${booking.id}`);
             />
           </div>
         )}
-
 
         {/* ══ STEP 3 — Review & Submit ══ */}
         {step === 3 && (
@@ -593,7 +579,6 @@ router.push(`/booking-confirmed?bookingId=${booking.id}`);
 
       </main>
 
-
       {/* ── Draft indicator ── */}
       <div className="fixed bottom-5 right-5 z-50 flex items-center gap-2
         bg-[#FBEAD6]/90 border border-[#C87D87]/18 rounded-xl px-4 py-2
@@ -618,5 +603,14 @@ router.push(`/booking-confirmed?bookingId=${booking.id}`);
       </div>
 
     </div>
+  );
+}
+
+// ─── Page wrapper avec Suspense ───
+export default function BookPage() {
+  return (
+    <Suspense fallback={<LoadingScreen />}>
+      <BookContent />
+    </Suspense>
   );
 }

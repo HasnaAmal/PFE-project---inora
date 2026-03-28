@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+const API = process.env.NEXT_PUBLIC_API_URL;
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
@@ -9,42 +10,33 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const fetchMe = async () => {
+    const res = await fetch(`${API}/api/auth/me`, { credentials: 'include' });
+    if (res.status === 403) {
+      setUser(null);
+      router.push('/login?suspended=true');
+      return;
+    }
+    if (!res.ok) throw new Error('Not logged in');
+    const data = await res.json();
+    setUser(data.user ?? data);
+  };
 
   useEffect(() => {
-    fetch(`${API_URL}/api/auth/me`, { credentials: 'include' })
-      .then(async res => {
-        if (res.status === 403) {
-          setUser(null);
-          router.push('/login?suspended=true');
-          return;
-        }
-        if (!res.ok) throw new Error('Not logged in');
-        return res.json();
-      })
-      .then(data => { if (data) setUser(data.user || data); })
+    fetchMe()
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
-  }, [API_URL, router]);
+  }, [API, router]);
+
+  // ✅ call this after avatar upload or any profile update
+  const refreshUser = () => fetchMe().catch(() => {});
 
   const login = async (email, password, selectedRole, adminCode) => {
-    // ✅ CORRECTION : Construire le body sans envoyer undefined
-    const body = {
-      email,
-      password,
-      role: selectedRole,
-    };
-    
-    // ✅ N'ajouter adminCode que s'il existe
-    if (adminCode) {
-      body.adminCode = adminCode;
-    }
-
-    const res = await fetch(`${API_URL}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch(`${API}/api/auth/login`, {
+      method:      'POST',
+      headers:     { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify(body),
+      body: JSON.stringify({ email, password, role: selectedRole, adminCode: adminCode || undefined }),
     });
     
     if (!res.ok) {
@@ -52,27 +44,16 @@ export function AuthProvider({ children }) {
       throw new Error(err.message || 'Login failed');
     }
     const data = await res.json();
-    setUser(data.user || data);
+    setUser(data.user ?? data);
     return data;
   };
 
   const register = async (fullName, email, password, adminCode) => {
-    // ✅ CORRECTION : Pareil pour register
-    const body = {
-      fullName,
-      email,
-      password,
-    };
-    
-    if (adminCode) {
-      body.adminCode = adminCode;
-    }
-
-    const res = await fetch(`${API_URL}/api/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch(`${API}/api/auth/register`, {
+      method:      'POST',
+      headers:     { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify(body),
+      body: JSON.stringify({ fullName, email, password, adminCode: adminCode || undefined }),
     });
     
     if (!res.ok) {
@@ -80,20 +61,17 @@ export function AuthProvider({ children }) {
       throw new Error(err.message || 'Registration failed');
     }
     const data = await res.json();
-    setUser(data.user || data);
+    setUser(data.user ?? data);
     return data;
   };
 
   const logout = async () => {
-    await fetch(`${API_URL}/api/auth/logout`, {
-      method: 'POST', 
-      credentials: 'include',
-    });
+    await fetch(`${API}/api/auth/logout`, { method: 'POST', credentials: 'include' });
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, setUser, login, register, logout, loading, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

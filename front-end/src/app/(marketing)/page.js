@@ -163,8 +163,8 @@ function HeroActivityPanel({ imgIndex, imgFading, setImgIndex }) {
           background:'rgba(107,117,86,0.6)', backdropFilter:'blur(8px)' }}>
         <div style={{ display:'flex', alignItems:'center', gap:'0.6rem' }}>
           <div style={{ width:'7px', height:'7px', borderRadius:'50%', background:'#C87D87' }}/>
-          <span style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontSize:'0.55rem',
-              letterSpacing:'0.3em', textTransform:'uppercase', color:'rgba(251,234,214,0.6)' }}>Available Activities</span>
+          <span style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontSize:'0.72rem',
+              letterSpacing:'0.2em', textTransform:'uppercase', color:'rgba(251,234,214,0.85)' }}>Available Activities</span>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:'0.4rem' }}>
           {activities.map((_,i) => (
@@ -187,24 +187,24 @@ function HeroActivityPanel({ imgIndex, imgFading, setImgIndex }) {
             padding:'0.3rem 0.7rem', display:'flex', alignItems:'center', gap:'0.4rem' }}>
           <div style={{ width:'5px', height:'5px', borderRadius:'50%', background:'#C87D87' }}/>
           <span style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontWeight:700,
-              fontSize:'0.58rem', letterSpacing:'0.15em', color:'#C87D87' }}>{a.tag}</span>
+              fontSize:'0.72rem', letterSpacing:'0.12em', color:'#C87D87' }}>{a.tag}</span>
         </div>
       </div>
 
       <div style={{ padding:'1.25rem 1.5rem 1.5rem', position:'relative', zIndex:2 }}>
         <NavCorner light/>
         <NavCorner flip light/>
-        <h3 style={{ fontFamily:"'Playfair Display', serif", fontStyle:'italic', fontSize:'1.35rem',
+        <h3 style={{ fontFamily:"'Playfair Display', serif", fontStyle:'italic', fontSize:'1.45rem',
             color:'#FBEAD6', margin:'0 0 0.5rem 0', lineHeight:1.2 }}>{a.title}</h3>
         <div style={{ width:'2rem', height:'2px', background:'#C87D87', borderRadius:'2px', marginBottom:'0.65rem' }}/>
-        <p style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontSize:'0.78rem',
-            color:'rgba(251,234,214,0.5)', lineHeight:1.7, margin:'0 0 1.1rem 0' }}>{a.desc}</p>
+        <p style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontSize:'0.92rem',
+            color:'rgba(251,234,214,0.75)', lineHeight:1.7, margin:'0 0 1.1rem 0' }}>{a.desc}</p>
         <div style={{ display:'flex', gap:'0.5rem', flexWrap:'wrap' }}>
           {['Garden', 'Indoor', 'Terrace'].map(v => (
-            <span key={v} style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'0.55rem',
-                letterSpacing:'0.12em', textTransform:'uppercase',
-                color:'rgba(251,234,214,0.55)', background:'rgba(251,234,214,0.07)',
-                border:'1px solid rgba(251,234,214,0.12)', borderRadius:'6px', padding:'0.25rem 0.6rem' }}>
+            <span key={v} style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'0.7rem',
+                letterSpacing:'0.1em', textTransform:'uppercase',
+                color:'rgba(251,234,214,0.75)', background:'rgba(251,234,214,0.07)',
+                border:'1px solid rgba(251,234,214,0.18)', borderRadius:'6px', padding:'0.25rem 0.6rem' }}>
               {v}
             </span>
           ))}
@@ -281,7 +281,7 @@ export default function Home() {
                   padding:'0.35rem 1rem 0.35rem 0.7rem' }}>
               <div style={{ width:'6px', height:'6px', borderRadius:'50%', background:'#C87D87' }}/>
               <span style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic',
-                  fontSize:'0.58rem', letterSpacing:'0.35em', textTransform:'uppercase', color:'#C87D87' }}>
+                  fontSize:'0.72rem', letterSpacing:'0.28em', textTransform:'uppercase', color:'#C87D87' }}>
                 Private Gatherings · Est. 2026
               </span>
             </div>
@@ -306,7 +306,7 @@ export default function Home() {
             </h1>
 
             <p className={`reveal d4 ${heroIn?'in-view':''}`}
-              style={{ fontSize:'1rem', lineHeight:1.9, color:'#5a4a3a', maxWidth:'360px', margin:'0 0 2rem' }}>
+              style={{ fontSize:'1.1rem', lineHeight:1.9, color:'#5a4a3a', maxWidth:'380px', margin:'0 0 2rem' }}>
               Inora designs intimate gatherings for up to{' '}
               <strong style={{ color:'#C87D87', fontWeight:600 }}>12 friends</strong> —
               choose your setting, pick your craft, and let us handle everything else.
@@ -315,7 +315,7 @@ export default function Home() {
             <div className={`reveal d5 ${heroIn?'in-view':''}`}
               style={{ display:'flex', alignItems:'center', gap:'1.25rem', marginBottom:'2.5rem' }}>
               <Link href="/book"
-                style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'0.62rem', letterSpacing:'0.28em',
+                style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'0.75rem', letterSpacing:'0.22em',
                     textTransform:'uppercase', color:'#FBEAD6', padding:'0.9rem 2.25rem',
                     background:'linear-gradient(160deg,#C87D87,#b56b76)', borderRadius:'10px',
                     textDecoration:'none', boxShadow:'0 6px 20px rgba(200,125,135,0.35)',
@@ -325,10 +325,10 @@ export default function Home() {
                 Plan a Gathering
               </Link>
               <Link href="#activities"
-                style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'0.62rem', letterSpacing:'0.25em',
+                style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'0.75rem', letterSpacing:'0.2em',
                     textTransform:'uppercase', color:'#6B7556', textDecoration:'none',
                     display:'flex', alignItems:'center', gap:'0.5rem',
-                    borderBottom:'1px solid rgba(107,117,86,0.4)', paddingBottom:'2px', transition:'all .3s ease' }}
+                    borderBottom:'1px solid rgba(107,117,86,0.5)', paddingBottom:'2px', transition:'all .3s ease' }}
                 onMouseEnter={e=>e.currentTarget.style.gap='0.8rem'}
                 onMouseLeave={e=>e.currentTarget.style.gap='0.5rem'}>
                 Explore Activities →
@@ -344,8 +344,8 @@ export default function Home() {
                   <NavCorner/>
                   <div style={{ fontFamily:"'Playfair Display', serif", fontSize:'1.8rem', fontStyle:'italic',
                       fontWeight:700, color:'#C87D87', lineHeight:1 }}>{s.num}</div>
-                  <div style={{ fontSize:'0.55rem', letterSpacing:'0.18em', textTransform:'uppercase',
-                      color:'rgba(122,106,90,0.55)', marginTop:'0.35rem' }}>{s.label}</div>
+                  <div style={{ fontSize:'0.68rem', letterSpacing:'0.14em', textTransform:'uppercase',
+                      color:'rgba(122,106,90,0.75)', marginTop:'0.35rem' }}>{s.label}</div>
                 </div>
               ))}
             </div>
@@ -364,8 +364,8 @@ export default function Home() {
         <div style={{ position:'absolute', bottom:'2rem', left:'50%', transform:'translateX(-50%)',
             display:'flex', flexDirection:'column', alignItems:'center', gap:'0.4rem',
             animation:'fadeIn 1s ease 2.5s both', opacity:0, zIndex:5 }}>
-          <span style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontSize:'0.48rem',
-              letterSpacing:'0.3em', textTransform:'uppercase', color:'rgba(58,48,39,0.35)' }}>Scroll</span>
+          <span style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontSize:'0.62rem',
+              letterSpacing:'0.25em', textTransform:'uppercase', color:'rgba(58,48,39,0.50)' }}>Scroll</span>
           <div style={{ width:'1px', height:'2.5rem',
               background:'linear-gradient(to bottom, rgba(200,125,135,0.5), transparent)',
               animation:'floatY 2s ease-in-out infinite' }}/>
@@ -383,8 +383,8 @@ export default function Home() {
           <NavCorner light/> <NavCorner flip light/>
           <div style={{ position:'absolute', top:0, left:0, right:0, height:'1px', background:'rgba(255,255,255,0.15)' }}/>
           <div className={`reveal-left ${activitiesIn?'in-view':''}`}>
-            <span style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontSize:'0.58rem',
-                letterSpacing:'0.4em', textTransform:'uppercase', color:'rgba(251,234,214,0.7)',
+            <span style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontSize:'0.72rem',
+                letterSpacing:'0.32em', textTransform:'uppercase', color:'rgba(251,234,214,0.85)',
                 display:'block', marginBottom:'0.5rem' }}>Craft Your Experience</span>
             <h2 style={{ fontFamily:"'Playfair Display', serif", fontStyle:'italic',
                 fontSize:'clamp(1.8rem,3vw,2.8rem)', color:'#FBEAD6', margin:0, lineHeight:1.15 }}>
@@ -392,8 +392,8 @@ export default function Home() {
             </h2>
           </div>
           <p className={`reveal-right d2 ${activitiesIn?'in-view':''}`}
-            style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'0.9rem',
-                color:'rgba(251,234,214,0.55)', maxWidth:'260px', textAlign:'right', lineHeight:1.8, margin:0 }}>
+            style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'1rem',
+                color:'rgba(251,234,214,0.80)', maxWidth:'280px', textAlign:'right', lineHeight:1.8, margin:0 }}>
             Every gathering is anchored by a shared creative activity that sparks real connection.
           </p>
         </div>
@@ -414,17 +414,17 @@ export default function Home() {
                     padding:'0.25rem 0.65rem', display:'flex', alignItems:'center', gap:'0.4rem' }}>
                   <div style={{ width:'5px', height:'5px', borderRadius:'50%', background:'#C87D87' }}/>
                   <span style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontWeight:700,
-                      fontSize:'0.6rem', letterSpacing:'0.15em', color:'#C87D87' }}>{a.tag}</span>
+                      fontSize:'0.72rem', letterSpacing:'0.12em', color:'#C87D87' }}>{a.tag}</span>
                 </div>
               </div>
               <div style={{ padding:'1.5rem 1.75rem 1.75rem' }}>
-                <h3 style={{ fontFamily:"'Playfair Display', serif", fontStyle:'italic', fontSize:'1.2rem',
+                <h3 style={{ fontFamily:"'Playfair Display', serif", fontStyle:'italic', fontSize:'1.3rem',
                     color:'#3a3027', margin:'0 0 0.6rem', lineHeight:1.2 }}>{a.title}</h3>
                 <div style={{ width:'1.75rem', height:'2px', background:'#C87D87', borderRadius:'2px', marginBottom:'0.65rem' }}/>
-                <p style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'0.82rem',
-                    color:'rgba(90,74,58,0.65)', lineHeight:1.85, margin:'0 0 1.25rem' }}>{a.desc}</p>
+                <p style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'0.95rem',
+                    color:'rgba(90,74,58,0.80)', lineHeight:1.85, margin:'0 0 1.25rem' }}>{a.desc}</p>
                 <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', fontFamily:"'Cormorant Garamond', serif",
-                    fontStyle:'italic', fontSize:'0.68rem', letterSpacing:'0.15em', textTransform:'uppercase',
+                    fontStyle:'italic', fontSize:'0.8rem', letterSpacing:'0.12em', textTransform:'uppercase',
                     color:'#C87D87', borderTop:'1px solid rgba(200,125,135,0.12)', paddingTop:'1rem' }}>
                   <span>Book this activity</span><span>→</span>
                 </div>
@@ -455,11 +455,11 @@ export default function Home() {
             marginBottom:'2.5rem', position:'relative', zIndex:2 }}>
           <div className={`reveal-left ${processIn?'in-view':''}`}>
             <div style={{ display:'inline-flex', alignItems:'center', gap:'0.6rem', marginBottom:'0.6rem',
-                background:'rgba(251,234,214,0.07)', border:'1px solid rgba(251,234,214,0.12)',
+                background:'rgba(251,234,214,0.07)', border:'1px solid rgba(251,234,214,0.15)',
                 borderRadius:'999px', padding:'0.3rem 0.9rem 0.3rem 0.6rem' }}>
               <div style={{ width:'5px', height:'5px', borderRadius:'50%', background:'#C87D87' }}/>
-              <span style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontSize:'0.55rem',
-                  letterSpacing:'0.35em', textTransform:'uppercase', color:'rgba(200,125,135,0.80)' }}>
+              <span style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontSize:'0.70rem',
+                  letterSpacing:'0.28em', textTransform:'uppercase', color:'rgba(200,125,135,0.90)' }}>
                 Simple by Design
               </span>
             </div>
@@ -470,7 +470,7 @@ export default function Home() {
           </div>
           <Link href="/book"
             className={`reveal-right d2 ${processIn?'in-view':''}`}
-            style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'0.6rem', letterSpacing:'0.25em',
+            style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'0.72rem', letterSpacing:'0.2em',
                 textTransform:'uppercase', color:'#6B7556', padding:'0.75rem 1.75rem',
                 background:'#FBEAD6', borderRadius:'10px', textDecoration:'none',
                 transition:'all .3s ease', display:'inline-block', flexShrink:0,
@@ -515,27 +515,27 @@ export default function Home() {
                       background: isMiddle ? 'rgba(200,125,135,0.20)' : 'rgba(251,234,214,0.08)',
                       border:`1px solid ${isMiddle ? 'rgba(200,125,135,0.40)' : 'rgba(251,234,214,0.14)'}`,
                       marginBottom:'1.1rem', fontSize:'0.9rem',
-                      color: isMiddle ? '#C87D87' : 'rgba(251,234,214,0.45)' }}>{icons[i]}</div>
+                      color: isMiddle ? '#C87D87' : 'rgba(251,234,214,0.65)' }}>{icons[i]}</div>
                   <div style={{ display:'inline-flex', alignItems:'center', gap:'0.4rem', marginBottom:'0.7rem',
                       background: isMiddle ? 'rgba(200,125,135,0.15)' : 'rgba(251,234,214,0.06)',
                       border:`1px solid ${isMiddle ? 'rgba(200,125,135,0.30)' : 'rgba(251,234,214,0.10)'}`,
                       borderRadius:'6px', padding:'0.18rem 0.55rem' }}>
                     <span style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic',
-                        fontSize:'0.55rem', letterSpacing:'0.25em', textTransform:'uppercase',
-                        color: isMiddle ? '#C87D87' : 'rgba(251,234,214,0.40)' }}>Step {step.num}</span>
+                        fontSize:'0.68rem', letterSpacing:'0.20em', textTransform:'uppercase',
+                        color: isMiddle ? '#C87D87' : 'rgba(251,234,214,0.65)' }}>Step {step.num}</span>
                   </div>
                   <h3 style={{ fontFamily:"'Playfair Display', serif", fontStyle:'italic',
-                      fontSize:'1.1rem', color:'#FBEAD6', margin:'0 0 0.5rem', lineHeight:1.25, position:'relative', zIndex:1 }}>
+                      fontSize:'1.2rem', color:'#FBEAD6', margin:'0 0 0.5rem', lineHeight:1.25, position:'relative', zIndex:1 }}>
                     {step.title}
                   </h3>
                   <div style={{ width:'1.75rem', height:'2px', borderRadius:'2px', marginBottom:'0.7rem',
-                      background: isMiddle ? '#C87D87' : 'rgba(251,234,214,0.20)' }}/>
+                      background: isMiddle ? '#C87D87' : 'rgba(251,234,214,0.30)' }}/>
                   <p style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic',
-                      fontSize:'0.82rem', color:'rgba(251,234,214,0.50)', lineHeight:1.8,
+                      fontSize:'0.92rem', color:'rgba(251,234,214,0.72)', lineHeight:1.8,
                       margin:0, position:'relative', zIndex:1 }}>{step.desc}</p>
                   {i < 2 && (
                     <div style={{ position:'absolute', top:'2.8rem', right:'-1.6rem',
-                        zIndex:10, color:'rgba(200,125,135,0.30)', fontSize:'0.55rem' }}>──→</div>
+                        zIndex:10, color:'rgba(200,125,135,0.40)', fontSize:'0.55rem' }}>──→</div>
                   )}
                 </div>
               </div>
@@ -546,13 +546,13 @@ export default function Home() {
         <div className={`reveal d4 ${processIn?'in-view':''}`}
           style={{ marginTop:'2rem', textAlign:'center', position:'relative', zIndex:2 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'1rem' }}>
-            <div style={{ width:'3rem', height:'1px', background:'rgba(200,125,135,0.25)' }}/>
+            <div style={{ width:'3rem', height:'1px', background:'rgba(200,125,135,0.30)' }}/>
             <span style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic',
-                fontSize:'0.72rem', letterSpacing:'0.25em', textTransform:'uppercase',
-                color:'rgba(251,234,214,0.25)' }}>
+                fontSize:'0.85rem', letterSpacing:'0.18em', textTransform:'uppercase',
+                color:'rgba(251,234,214,0.45)' }}>
               Everything taken care of — just arrive and create
             </span>
-            <div style={{ width:'3rem', height:'1px', background:'rgba(200,125,135,0.25)' }}/>
+            <div style={{ width:'3rem', height:'1px', background:'rgba(200,125,135,0.30)' }}/>
           </div>
         </div>
       </section>
@@ -564,8 +564,8 @@ export default function Home() {
       <section id="reviews" ref={reviewsRef} style={{ padding:'2rem 5rem 6rem' }}>
         <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginBottom:'2.5rem' }}>
           <div className={`reveal-left ${reviewsIn?'in-view':''}`}>
-            <span style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontSize:'0.58rem',
-                letterSpacing:'0.4em', textTransform:'uppercase', color:'#C87D87', display:'block', marginBottom:'0.6rem' }}>
+            <span style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontSize:'0.72rem',
+                letterSpacing:'0.32em', textTransform:'uppercase', color:'#C87D87', display:'block', marginBottom:'0.6rem' }}>
               Voices from Our Circles
             </span>
             <h2 style={{ fontFamily:"'Playfair Display', serif", fontStyle:'italic',
@@ -574,8 +574,8 @@ export default function Home() {
             </h2>
           </div>
           <p className={`reveal-right d2 ${reviewsIn?'in-view':''}`}
-            style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontSize:'0.9rem',
-                color:'rgba(90,74,58,0.5)', maxWidth:'220px', textAlign:'right', lineHeight:1.8, margin:0 }}>
+            style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontSize:'1rem',
+                color:'rgba(90,74,58,0.70)', maxWidth:'240px', textAlign:'right', lineHeight:1.8, margin:0 }}>
             Every gathering tells a story.<br/>Here are a few of theirs.
           </p>
         </div>
@@ -599,13 +599,13 @@ export default function Home() {
               fontSize:'clamp(1.6rem,2.8vw,2.5rem)', color:'#FBEAD6', margin:'0 0 0.6rem', lineHeight:1.2 }}>
             Ready to Gather?
           </h2>
-          <p style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'0.95rem',
-              color:'rgba(251,234,214,0.70)', margin:0, lineHeight:1.8, maxWidth:'400px' }}>
+          <p style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'1.05rem',
+              color:'rgba(251,234,214,0.85)', margin:0, lineHeight:1.8, maxWidth:'400px' }}>
             Plan your next intimate creative experience — everything is taken care of, from setting to craft.
           </p>
         </div>
         <Link href="/book"
-          style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'0.62rem', letterSpacing:'0.28em',
+          style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'0.75rem', letterSpacing:'0.22em',
               textTransform:'uppercase', color:'#C87D87', padding:'1rem 2.5rem', background:'#fef6ec',
               borderRadius:'10px', textDecoration:'none', whiteSpace:'nowrap', flexShrink:0,
               boxShadow:'0 4px 16px rgba(58,48,39,0.15)', transition:'all .3s ease',
@@ -617,111 +617,109 @@ export default function Home() {
       </section>
 
 
-     {/* ══════════════════════════════════════════
-    FOOTER
-══════════════════════════════════════════ */}
-<footer ref={footerRef} className="sage-panel"
-  style={{ padding:'3.5rem 5rem 2rem', position:'relative' }}>
+      {/* ══════════════════════════════════════════
+          FOOTER
+      ══════════════════════════════════════════ */}
+      <footer ref={footerRef} className="sage-panel"
+        style={{ padding:'2rem 5rem', position:'relative' }}>
 
-  <NavCorner light/> <NavCorner flip light/>
+        <NavCorner light/> <NavCorner flip light/>
 
-  <div style={{ position:'relative', zIndex:2, display:'flex', flexDirection:'column', gap:'2.5rem' }}>
+        <div style={{ position:'relative', zIndex:2, display:'flex', flexDirection:'column', gap:'1.5rem' }}>
 
-    {/* ── Main row ── */}
-    <div style={{ display:'grid', gridTemplateColumns:'1.5fr 1fr 1fr', gap:'4rem', alignItems:'start' }}>
+          {/* ── Main row ── */}
+          <div style={{ display:'grid', gridTemplateColumns:'1.5fr 1fr 1fr', gap:'4rem', alignItems:'start' }}>
 
-      {/* Col 1 — Brand + tagline */}
-      <div style={{ display:'flex', flexDirection:'column', gap:'0.75rem' }}>
-        <span style={{ fontFamily:"'Playfair Display', serif", fontStyle:'italic',
-            fontSize:'1.8rem', color:'#FBEAD6', fontWeight:400, letterSpacing:'0.04em' }}>
-          Inora
-        </span>
-        <div style={{ width:'2.5rem', height:'1.5px',
-            background:'linear-gradient(to right, #C87D87, transparent)', borderRadius:'2px' }}/>
-        <p style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic',
-            fontSize:'0.8rem', color:'rgba(251,234,214,0.30)', lineHeight:1.8,
-            margin:0, maxWidth:'220px' }}>
-          Intimate gatherings for up to 12 friends — curated settings, shared crafts, lasting memories.
-        </p>
-      </div>
+            {/* Col 1 — Brand + tagline */}
+            <div style={{ display:'flex', flexDirection:'column', gap:'0.65rem' }}>
+              <span style={{ fontFamily:"'Playfair Display', serif", fontStyle:'italic',
+                  fontSize:'1.8rem', color:'#FBEAD6', fontWeight:400, letterSpacing:'0.04em' }}>
+                Inora
+              </span>
+              <div style={{ width:'2.5rem', height:'1.5px',
+                  background:'linear-gradient(to right, #C87D87, transparent)', borderRadius:'2px' }}/>
+              <p style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic',
+                  fontSize:'0.92rem', color:'rgba(251,234,214,0.60)', lineHeight:1.8,
+                  margin:0, maxWidth:'220px' }}>
+                Intimate gatherings for up to 12 friends — curated settings, shared crafts, lasting memories.
+              </p>
+            </div>
 
-      {/* Col 2 — Navigation */}
-      <div style={{ display:'flex', flexDirection:'column', gap:'0.5rem' }}>
-        <span style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'0.52rem',
-            letterSpacing:'0.35em', textTransform:'uppercase',
-            color:'rgba(200,125,135,0.55)', marginBottom:'0.5rem' }}>
-          Navigation
-        </span>
-        {footerLinks.map((link, i) => (
-          <Link key={i} href={link.href}
-            style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'0.78rem',
-                color:'rgba(251,234,214,0.38)', textDecoration:'none',
-                transition:'color .2s ease', display:'flex', alignItems:'center', gap:'0.5rem' }}
-            onMouseEnter={e => {
-              e.currentTarget.style.color = '#C87D87';
-              e.currentTarget.querySelector('span').style.opacity = '1';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.color = 'rgba(251,234,214,0.38)';
-              e.currentTarget.querySelector('span').style.opacity = '0';
-            }}>
-            <span style={{ fontSize:'0.4rem', color:'#C87D87', opacity:0, transition:'opacity .2s ease' }}>✦</span>
-            {link.label}
-          </Link>
-        ))}
-      </div>
+            {/* Col 2 — Navigation */}
+            <div style={{ display:'flex', flexDirection:'column', gap:'0.55rem' }}>
+              <span style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'0.65rem',
+                  letterSpacing:'0.30em', textTransform:'uppercase',
+                  color:'rgba(200,125,135,0.80)', marginBottom:'0.4rem' }}>
+                Navigation
+              </span>
+              {footerLinks.map((link, i) => (
+                <Link key={i} href={link.href}
+                  style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'0.92rem',
+                      color:'rgba(251,234,214,0.65)', textDecoration:'none',
+                      transition:'color .2s ease', display:'flex', alignItems:'center', gap:'0.5rem' }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.color = '#C87D87';
+                    e.currentTarget.querySelector('span').style.opacity = '1';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.color = 'rgba(251,234,214,0.65)';
+                    e.currentTarget.querySelector('span').style.opacity = '0';
+                  }}>
+                  <span style={{ fontSize:'0.4rem', color:'#C87D87', opacity:0, transition:'opacity .2s ease' }}>✦</span>
+                  {link.label}
+                </Link>
+              ))}
+            </div>
 
-      {/* Col 3 — Contact */}
-      <div style={{ display:'flex', flexDirection:'column', gap:'0.5rem' }}>
-        <span style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'0.52rem',
-            letterSpacing:'0.35em', textTransform:'uppercase',
-            color:'rgba(200,125,135,0.55)', marginBottom:'0.5rem' }}>
-          Contact Us
-        </span>
-        <a href="mailto:hello@inora.co"
-          style={{ display:'flex', alignItems:'center', gap:'0.5rem', textDecoration:'none',
-              fontFamily:"'Cormorant Garamond', serif", fontSize:'0.78rem',
-              color:'rgba(251,234,214,0.38)', transition:'color .2s ease' }}
-          onMouseEnter={e => e.currentTarget.style.color = '#C87D87'}
-          onMouseLeave={e => e.currentTarget.style.color = 'rgba(251,234,214,0.38)'}>
-          <span style={{ fontSize:'0.6rem', color:'rgba(200,125,135,0.45)' }}>✉</span>
-          hello@inora.co
-        </a>
-        <a href="tel:+12345678900"
-          style={{ display:'flex', alignItems:'center', gap:'0.5rem', textDecoration:'none',
-              fontFamily:"'Cormorant Garamond', serif", fontSize:'0.78rem',
-              color:'rgba(251,234,214,0.38)', transition:'color .2s ease' }}
-          onMouseEnter={e => e.currentTarget.style.color = '#C87D87'}
-          onMouseLeave={e => e.currentTarget.style.color = 'rgba(251,234,214,0.38)'}>
-          <span style={{ fontSize:'0.6rem', color:'rgba(200,125,135,0.45)' }}>✆</span>
-          +1 234 567 890
-        </a>
-        <span style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic',
-            fontSize:'0.68rem', color:'rgba(251,234,214,0.20)', marginTop:'0.25rem' }}>
-          Available by appointment
-        </span>
-      </div>
+            {/* Col 3 — Contact */}
+            <div style={{ display:'flex', flexDirection:'column', gap:'0.55rem' }}>
+              <span style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'0.65rem',
+                  letterSpacing:'0.30em', textTransform:'uppercase',
+                  color:'rgba(200,125,135,0.80)', marginBottom:'0.4rem' }}>
+                Contact Us
+              </span>
+              <a href="mailto:hello@inora.co"
+                style={{ display:'flex', alignItems:'center', gap:'0.5rem', textDecoration:'none',
+                    fontFamily:"'Cormorant Garamond', serif", fontSize:'0.92rem',
+                    color:'rgba(251,234,214,0.65)', transition:'color .2s ease' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#C87D87'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(251,234,214,0.65)'}>
+                <span style={{ fontSize:'0.7rem', color:'rgba(200,125,135,0.65)' }}>✉</span>
+                hello@inora.co
+              </a>
+              <a href="tel:+12345678900"
+                style={{ display:'flex', alignItems:'center', gap:'0.5rem', textDecoration:'none',
+                    fontFamily:"'Cormorant Garamond', serif", fontSize:'0.92rem',
+                    color:'rgba(251,234,214,0.65)', transition:'color .2s ease' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#C87D87'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(251,234,214,0.65)'}>
+                <span style={{ fontSize:'0.7rem', color:'rgba(200,125,135,0.65)' }}>✆</span>
+                +1 234 567 890
+              </a>
+              <span style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic',
+                  fontSize:'0.80rem', color:'rgba(251,234,214,0.38)', marginTop:'0.15rem' }}>
+                Available by appointment
+              </span>
+            </div>
 
-    </div>
+          </div>
 
-    {/* ── Divider ── */}
-    <div style={{ height:'1px',
-        background:'linear-gradient(to right, transparent, rgba(251,234,214,0.10), transparent)' }}/>
+          {/* ── Divider ── */}
+          <div style={{ height:'1px',
+              background:'linear-gradient(to right, transparent, rgba(251,234,214,0.12), transparent)' }}/>
 
-    {/* ── Bottom bar ── */}
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'1.5rem',
-        paddingBottom:'0.5rem' }}>
-      <div style={{ width:'2.5rem', height:'1px', background:'rgba(200,125,135,0.20)' }}/>
-      <p style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic',
-          fontSize:'0.7rem', color:'rgba(251,234,214,0.18)', margin:0, textAlign:'center' }}>
-        © {new Date().getFullYear()} Inora · All rights reserved · Crafted with intention.
-      </p>
-      <div style={{ width:'2.5rem', height:'1px', background:'rgba(200,125,135,0.20)' }}/>
-    </div>
+          {/* ── Copyright ── */}
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'1.5rem' }}>
+            <div style={{ width:'2.5rem', height:'1px', background:'rgba(200,125,135,0.22)' }}/>
+            <p style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic',
+                fontSize:'0.82rem', color:'rgba(251,234,214,0.35)', margin:0, textAlign:'center' }}>
+              © {new Date().getFullYear()} Inora · All rights reserved · Crafted with intention.
+            </p>
+            <div style={{ width:'2.5rem', height:'1px', background:'rgba(200,125,135,0.22)' }}/>
+          </div>
 
-  </div>
-</footer>
-
+        </div>
+      </footer>
 
     </main>
   );

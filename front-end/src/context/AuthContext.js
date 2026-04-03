@@ -10,25 +10,47 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  // 🔥 Fonction pour récupérer le token
+  const getToken = () => {
+    return localStorage.getItem('token');
+  };
+
+  // 🔥 Fonction pour faire des appels authentifiés
+  const authFetch = async (url, options = {}) => {
+    const token = getToken();
+    return fetch(url, {
+      ...options,
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+        ...options.headers,
+      },
+    });
+  };
+
   const fetchMe = async () => {
-    const res = await fetch(`${API}/api/auth/me`, { credentials: 'include' });
-    if (res.status === 403) {
+    try {
+      const res = await authFetch(`${API}/api/auth/me`);
+      if (res.status === 403) {
+        setUser(null);
+        router.push('/login?suspended=true');
+        return;
+      }
+      if (!res.ok) throw new Error('Not logged in');
+      const data = await res.json();
+      setUser(data.user ?? data);
+    } catch (error) {
       setUser(null);
-      router.push('/login?suspended=true');
-      return;
     }
-    if (!res.ok) throw new Error('Not logged in');
-    const data = await res.json();
-    setUser(data.user ?? data);
   };
 
   useEffect(() => {
     fetchMe()
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
-  }, [API, router]);
+  }, []);
 
-  // ✅ call this after avatar upload or any profile update
   const refreshUser = () => fetchMe().catch(() => {});
 
   const login = async (email, password, selectedRole, adminCode) => {
@@ -44,6 +66,12 @@ export function AuthProvider({ children }) {
       throw new Error(err.message || 'Login failed');
     }
     const data = await res.json();
+    
+    // 🔥 STOCKER LE TOKEN DANS localStorage
+    if (data.token) {
+      localStorage.setItem('token', data.token);
+    }
+    
     setUser(data.user ?? data);
     return data;
   };
@@ -61,17 +89,28 @@ export function AuthProvider({ children }) {
       throw new Error(err.message || 'Registration failed');
     }
     const data = await res.json();
+    
+    // 🔥 STOCKER LE TOKEN DANS localStorage (si le register renvoie un token)
+    if (data.token) {
+      localStorage.setItem('token', data.token);
+    }
+    
     setUser(data.user ?? data);
     return data;
   };
 
   const logout = async () => {
     await fetch(`${API}/api/auth/logout`, { method: 'POST', credentials: 'include' });
+    // 🔥 SUPPRIMER LE TOKEN
+    localStorage.removeItem('token');
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, login, register, logout, loading, refreshUser }}>
+    <AuthContext.Provider value={{ 
+      user, setUser, login, register, logout, loading, refreshUser, 
+      authFetch, getToken  // ← Exporter aussi ces fonctions
+    }}>
       {children}
     </AuthContext.Provider>
   );

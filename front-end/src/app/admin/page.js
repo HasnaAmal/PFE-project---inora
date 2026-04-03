@@ -155,7 +155,18 @@ const exportBookingPDF = (b) => {
 export default function Admin() {
   const { user, setUser, logout } = useAuth();
   const router = useRouter();
-
+const authFetch = async (url, options = {}) => {
+    const token = localStorage.getItem('token');
+    return fetch(url, {
+      ...options,
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+        ...options.headers,
+      },
+    });
+  };
   const [activeTab,          setActiveTab]          = useState('overview');
   const [pageReady,          setPageReady]          = useState(false);
   const [collapsed,          setCollapsed]          = useState(false);
@@ -204,7 +215,7 @@ export default function Admin() {
 
   const fetchProfile = async () => {
     try {
-      const res = await fetch(`${API}/api/auth/me`, { credentials:'include' });
+const res = await authFetch(`${API}/api/auth/me`);
       if (res.ok) {
         const data = await res.json();
         setProfile(data.user);
@@ -225,8 +236,8 @@ export default function Admin() {
   const fetchReviews = async () => {
     try {
       const [aRes, pRes] = await Promise.all([
-        fetch(`${API}/api/reviews/approved`, { credentials:'include' }),
-        fetch(`${API}/api/reviews/pending`,  { credentials:'include' }),
+       authFetch(`${API}/api/reviews/approved`),
+  authFetch(`${API}/api/reviews/pending`),
       ]);
       const aData = await aRes.json(); const pData = await pRes.json();
       setApprovedReviews(Array.isArray(aData) ? aData : []);
@@ -237,7 +248,7 @@ export default function Admin() {
   const fetchUsers = async () => {
     setUsersLoading(true);
     try {
-      const res = await fetch(`${API}/api/auth/admin/users`, { credentials:'include' });
+const res = await authFetch(`${API}/api/auth/admin/users`);
       if (res.ok) setUsers(await res.json());
     } finally { setUsersLoading(false); }
   };
@@ -245,7 +256,7 @@ export default function Admin() {
   const fetchBookings = async () => {
     setBookingsLoading(true);
     try {
-      const res = await fetch(`${API}/api/bookings`, { credentials:'include' });
+const res = await authFetch(`${API}/api/bookings`);
       const d   = await res.json();
       setBookings(Array.isArray(d) ? d : []);
     } catch { setBookings([]); } finally { setBookingsLoading(false); }
@@ -254,7 +265,7 @@ export default function Admin() {
   const fetchAllBookings = async () => {
     setAllBookingsLoading(true);
     try {
-      const res = await fetch(`${API}/api/bookings/all`, { credentials:'include' });
+const res = await authFetch(`${API}/api/bookings/all`);
       const d   = await res.json();
       setAllBookings(Array.isArray(d) ? d : []);
     } catch { setAllBookings([]); } finally { setAllBookingsLoading(false); }
@@ -263,42 +274,42 @@ export default function Admin() {
   const fetchPayments = async () => {
     setPaymentsLoading(true);
     try {
-      const res = await fetch(`${API}/api/bookings/paid`, { credentials:'include' });
+const res = await authFetch(`${API}/api/bookings/paid`);
       const d   = await res.json();
       setPayments(Array.isArray(d) ? d : []);
     } catch { setPayments([]); } finally { setPaymentsLoading(false); }
   };
 
   const approveReview = async (id) => {
-    await fetch(`${API}/api/reviews/${id}/approve`, { method:'PATCH', credentials:'include' });
+await authFetch(`${API}/api/reviews/${id}/approve`, { method:'PATCH' });
     fetchReviews();
   };
   const deleteReview = async (id) => {
     if (!confirm('Delete this review?')) return;
-    await fetch(`${API}/api/reviews/${id}`, { method:'DELETE', credentials:'include' });
+await authFetch(`${API}/api/reviews/${id}`, { method:'DELETE' });
     fetchReviews();
   };
   const toggleSuspend = async (id, suspended) => {
-    await fetch(`${API}/api/auth/admin/users/${id}/suspend`, {
-      method:'PATCH', credentials:'include',
-      headers:{ 'Content-Type':'application/json' },
-      body: JSON.stringify({ suspended: !suspended }),
-    });
+  await authFetch(`${API}/api/auth/admin/users/${id}/suspend`, {
+  method:'PATCH',
+  headers:{ 'Content-Type':'application/json' },
+  body: JSON.stringify({ suspended: !suspended }),
+});
     fetchUsers();
   };
   const updateBookingStatus = async (id, status) => {
-    await fetch(`${API}/api/bookings/${id}/status`, {
-      method:'PATCH', credentials:'include',
-      headers:{ 'Content-Type':'application/json' },
-      body: JSON.stringify({ status }),
-    });
+   await authFetch(`${API}/api/bookings/${id}/status`, {
+  method:'PATCH',
+  headers:{ 'Content-Type':'application/json' },
+  body: JSON.stringify({ status }),
+});
     fetchBookings();
     fetchAllBookings();
     if (selectedBooking?.id === id) setSelectedBooking(b => ({ ...b, status }));
   };
   const deleteBooking = async (id) => {
     if (!confirm('Delete this booking?')) return;
-    await fetch(`${API}/api/bookings/${id}`, { method:'DELETE', credentials:'include' });
+await authFetch(`${API}/api/bookings/${id}`, { method:'DELETE' });
     fetchBookings();
     fetchAllBookings();
     fetchPayments();
@@ -312,9 +323,10 @@ export default function Admin() {
     setAvatarLoad(true); setAvatarMsg({ type:'', text:'' });
     const fd = new FormData(); fd.append('avatar', file);
     try {
-      const res = await fetch(`${API}/api/auth/avatar`, {
-        method:'POST', credentials:'include', body: fd,
-      });
+  const res = await authFetch(`${API}/api/auth/avatar`, {
+  method:'POST', body: fd,
+  headers: {} // Important pour FormData, ne pas mettre Content-Type
+});;
       const data = await res.json();
       if (res.ok) {
         setAvatarMsg({ type:'success', text:'Avatar updated.' });
@@ -329,11 +341,11 @@ export default function Admin() {
   const handleName = async (e) => {
     e.preventDefault(); setNameLoad(true); setNameMsg({ type:'', text:'' });
     try {
-      const res = await fetch(`${API}/api/auth/update-name`, {
-        method:'PATCH', credentials:'include',
-        headers:{ 'Content-Type':'application/json' },
-        body: JSON.stringify({ fullName: nameForm.fullName }),
-      });
+     const res = await authFetch(`${API}/api/auth/update-name`, {
+  method:'PATCH',
+  headers:{ 'Content-Type':'application/json' },
+  body: JSON.stringify({ fullName: nameForm.fullName }),
+});
       const data = await res.json();
       if (res.ok) {
         setNameMsg({ type:'success', text:'Name updated.' });
@@ -347,11 +359,11 @@ export default function Admin() {
   const handleEmail = async (e) => {
     e.preventDefault(); setEmailLoad(true); setEmailMsg({ type:'', text:'' });
     try {
-      const res = await fetch(`${API}/api/auth/update-email`, {
-        method:'PATCH', credentials:'include',
-        headers:{ 'Content-Type':'application/json' },
-        body: JSON.stringify(emailForm),
-      });
+    const res = await authFetch(`${API}/api/auth/update-email`, {
+  method:'PATCH',
+  headers:{ 'Content-Type':'application/json' },
+  body: JSON.stringify(emailForm),
+});
       const data = await res.json();
       if (res.ok) {
         setEmailMsg({ type:'success', text:'Email updated.' });
@@ -369,11 +381,11 @@ export default function Admin() {
       return setPassMsg({ type:'error', text:'Passwords do not match.' });
     setPassLoad(true); setPassMsg({ type:'', text:'' });
     try {
-      const res = await fetch(`${API}/api/auth/update-password`, {
-        method:'PATCH', credentials:'include',
-        headers:{ 'Content-Type':'application/json' },
-        body: JSON.stringify({ currentPassword: passForm.currentPassword, newPassword: passForm.newPassword }),
-      });
+     const res = await authFetch(`${API}/api/auth/update-password`, {
+  method:'PATCH',
+  headers:{ 'Content-Type':'application/json' },
+  body: JSON.stringify({ currentPassword: passForm.currentPassword, newPassword: passForm.newPassword }),
+});
       const data = await res.json();
       if (res.ok) {
         setPassMsg({ type:'success', text:'Password updated.' });
@@ -386,11 +398,11 @@ export default function Admin() {
   const handleDelete = async (e) => {
     e.preventDefault(); setDeleteLoad(true); setDeleteMsg({ type:'', text:'' });
     try {
-      const res = await fetch(`${API}/api/auth/delete-account`, {
-        method:'DELETE', credentials:'include',
-        headers:{ 'Content-Type':'application/json' },
-        body: JSON.stringify(deleteForm),
-      });
+     const res = await authFetch(`${API}/api/auth/delete-account`, {
+  method:'DELETE',
+  headers:{ 'Content-Type':'application/json' },
+  body: JSON.stringify(deleteForm),
+});
       const data = await res.json();
       if (res.ok) { await logout(); router.push('/'); }
       else setDeleteMsg({ type:'error', text: data.message || 'Failed.' });

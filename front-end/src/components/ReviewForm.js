@@ -1,22 +1,41 @@
 'use client';
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 
-export default function ReviewForm({ gatheringId }) {
+export default function ReviewForm() {
+  const searchParams = useSearchParams();
+  const bookingId = searchParams.get('bookingId'); // ← read from URL
+
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [hoveredStar, setHoveredStar] = useState(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const submitReview = async () => {
-    await fetch('http://localhost:4000/api/reviews', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ rating, comment, gatheringId }),
-    });
-    setSubmitted(true);
-  };
+    setError('');
+    if (comment.trim().length < 10)
+      return setError('Please write at least 10 characters.');
 
+    setLoading(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ rating, comment, bookingId }), // ✅ correct field + env var
+      });
+
+      const data = await res.json();
+      if (!res.ok) return setError(data.message || 'Something went wrong.');
+      setSubmitted(true);
+    } catch (e) {
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
   if (submitted) {
     return (
       <div className="bg-white/70 border border-[#C87D87]/20 p-10 text-center max-w-md mx-auto">

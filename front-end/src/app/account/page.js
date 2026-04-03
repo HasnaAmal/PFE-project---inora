@@ -73,7 +73,7 @@ const CancelBookingModal = ({ booking, onConfirm, onCancel }) => (
   </div>
 )
 
-// ── Loading screen — same as BookPage ──────────────────────────────────────────
+// ── Loading screen ──────────────────────────────────────────────────────────────
 function LoadingScreen() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden"
@@ -84,19 +84,13 @@ function LoadingScreen() {
         @keyframes laceCounter { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
         @keyframes floatOrb    { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
       `}</style>
-
-      {/* Orbs */}
       <div className="absolute top-10 left-10 w-64 h-64 rounded-full pointer-events-none"
         style={{background:'radial-gradient(circle,rgba(251,234,214,0.10) 0%,transparent 70%)',animation:'floatOrb 10s ease-in-out infinite',filter:'blur(18px)'}}/>
       <div className="absolute bottom-10 right-10 w-72 h-72 rounded-full pointer-events-none"
         style={{background:'radial-gradient(circle,rgba(200,125,135,0.12) 0%,transparent 70%)',animation:'floatOrb 13s ease-in-out infinite 2s',filter:'blur(22px)'}}/>
-
       <div className="relative z-10 flex flex-col items-center gap-5">
-        {/* Lace mandala */}
         <div className="relative w-24 h-24 flex items-center justify-center">
-          {/* Outer ring */}
-          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 96 96"
-            style={{animation:'laceRotate 8s linear infinite'}}>
+          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 96 96" style={{animation:'laceRotate 8s linear infinite'}}>
             <circle cx="48" cy="48" r="44" fill="none" stroke="#FBEAD6" strokeWidth="0.6" strokeOpacity="0.35" strokeDasharray="3 5"/>
             {[0,30,60,90,120,150,180,210,240,270,300,330].map((a,i) => {
               const r = a*Math.PI/180
@@ -108,9 +102,7 @@ function LoadingScreen() {
               )
             })}
           </svg>
-          {/* Middle ring */}
-          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 96 96"
-            style={{animation:'laceCounter 6s linear infinite'}}>
+          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 96 96" style={{animation:'laceCounter 6s linear infinite'}}>
             <circle cx="48" cy="48" r="30" fill="none" stroke="#FBEAD6" strokeWidth="0.7" strokeOpacity="0.38"/>
             {[0,45,90,135,180,225,270,315].map((a,i) => {
               const r = a*Math.PI/180
@@ -122,15 +114,12 @@ function LoadingScreen() {
               )
             })}
           </svg>
-          {/* Centre */}
-          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 96 96"
-            style={{animation:'lacePulse 2s ease-in-out infinite'}}>
+          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 96 96" style={{animation:'lacePulse 2s ease-in-out infinite'}}>
             <circle cx="48" cy="48" r="14" fill="none" stroke="#FBEAD6" strokeWidth="0.6" strokeOpacity="0.42"/>
             <rect x="43" y="43" width="10" height="10" transform="rotate(45 48 48)" fill="none" stroke="#FBEAD6" strokeWidth="0.7" strokeOpacity="0.62"/>
             <circle cx="48" cy="48" r="2.5" fill="#FBEAD6" fillOpacity="0.52"/>
           </svg>
         </div>
-
         <div className="flex flex-col items-center gap-1.5">
           <p className="font-['Playfair_Display',serif] italic text-[#FBEAD6]/75 text-xl">Inora</p>
           <p className="font-['Cormorant_Garamond',serif] italic text-[#FBEAD6]/40 text-[0.7rem] tracking-[0.4em] uppercase">Loading your profile</p>
@@ -295,6 +284,7 @@ export default function AccountPage() {
     finally { setCancellingId(null) }
   }
 
+  // ── UPDATED: exportSinglePDF with full payment breakdown ─────────────────────
   const exportSinglePDF = (booking) => {
     import('jspdf').then(({ default: jsPDF }) => {
       const doc = new jsPDF()
@@ -310,6 +300,14 @@ export default function AccountPage() {
       doc.text(`Booking ID: ${String(booking.id).padStart(5,'0')}`, 20, 54)
       doc.text(`Status: ${s.label}`, 20, 61)
       doc.setDrawColor(230, 215, 200); doc.setLineWidth(0.2); doc.line(20, 66, 190, 66)
+
+      // Payment breakdown for PDF
+      const PRICE_PER_PERSON = 150
+      const pdfTotal = (parseInt(booking.participants) || 1) * PRICE_PER_PERSON
+      const pdfIsFullPay = booking.paymentMode === 'full'
+      const pdfAmountPaid = booking.advancePaid ?? (pdfIsFullPay ? pdfTotal : 0)
+      const pdfDueOnDay = pdfIsFullPay ? 0 : pdfTotal - pdfAmountPaid
+
       const rows = [
         ['Activity', `${booking.activity} ${booking.activityType}`],
         ['Activity Theme', booking.activityTheme],
@@ -321,8 +319,13 @@ export default function AccountPage() {
         ['Email', booking.email],
         ['Phone', booking.phone],
         ['Preferred Contact', booking.preferredContact],
-        ['Payment', booking.paymentStatus],
-        ...(booking.advancePaid ? [['Advance Paid', `${booking.advancePaid} MAD`]] : []),
+        ['Payment', booking.paymentStatus === 'PAID' ? 'Paid' : booking.paymentStatus],
+        ...(booking.paymentStatus === 'PAID' ? [
+          ['Total Amount',   `${pdfTotal} MAD`],
+          ['Amount Paid',    `${pdfAmountPaid} MAD`],
+          ['Payment Mode',   pdfIsFullPay ? 'Full payment' : 'Advance payment'],
+          ['Due on Arrival', pdfDueOnDay > 0 ? `${pdfDueOnDay} MAD` : 'Nothing due — fully paid'],
+        ] : []),
         ...(booking.allergies ? [['Allergies', booking.allergies]] : []),
         ...(booking.specialRequests ? [['Special Requests', booking.specialRequests]] : []),
         ...(booking.additionalNotes ? [['Additional Notes', booking.additionalNotes]] : []),
@@ -348,9 +351,9 @@ export default function AccountPage() {
   const displayName = profile?.fullName ?? user?.fullName ?? 'Member'
   const avatarUrl = profile?.avatarUrl ?? user?.avatarUrl ?? null
 
-  const IC = 'w-full px-4 py-3 bg-[#fdf3e7] border border-[#C87D87]/20 focus:border-[#C87D87] focus:ring-2 focus:ring-[#C87D87]/10 focus:outline-none font-[\'Cormorant_Garamond\',serif] italic text-base text-[#3a3027] placeholder:text-[#7a6a5a]/45 transition-all rounded-xl'
-  const LC = 'font-[\'Cormorant_Garamond\',serif] text-[0.6rem] tracking-[0.2em] uppercase text-[#7a6a5a]/60 block mb-2 font-semibold'
-  const BTN = 'font-[\'Cormorant_Garamond\',serif] text-sm tracking-[0.22em] uppercase text-white bg-[#6B7556] px-8 py-3 rounded-xl hover:bg-[#4a5240] active:scale-[0.98] transition-all duration-300 disabled:opacity-40 inline-block cursor-pointer font-semibold shadow-[0_4px_16px_rgba(107,117,86,0.30)] hover:-translate-y-0.5'
+  const IC = "w-full px-4 py-3 bg-[#fdf3e7] border border-[#C87D87]/20 focus:border-[#C87D87] focus:ring-2 focus:ring-[#C87D87]/10 focus:outline-none font-['Cormorant_Garamond',serif] italic text-base text-[#3a3027] placeholder:text-[#7a6a5a]/45 transition-all rounded-xl"
+  const LC = "font-['Cormorant_Garamond',serif] text-[0.6rem] tracking-[0.2em] uppercase text-[#7a6a5a]/60 block mb-2 font-semibold"
+  const BTN = "font-['Cormorant_Garamond',serif] text-sm tracking-[0.22em] uppercase text-white bg-[#6B7556] px-8 py-3 rounded-xl hover:bg-[#4a5240] active:scale-[0.98] transition-all duration-300 disabled:opacity-40 inline-block cursor-pointer font-semibold shadow-[0_4px_16px_rgba(107,117,86,0.30)] hover:-translate-y-0.5"
 
   const sideNav = [
     { id: 'personal', label: 'Personal Details', sub: 'Name • email • address', icon: 'M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z' },
@@ -360,11 +363,11 @@ export default function AccountPage() {
   ]
 
   const statusConfig = {
-    pending:   { label: 'Pending',   bg: 'bg-amber-50',       border: 'border-amber-200',      text: 'text-amber-600',  dot: 'bg-amber-400' },
-    confirmed: { label: 'Confirmed', bg: 'bg-green-50',       border: 'border-green-200',      text: 'text-green-600',  dot: 'bg-green-400' },
-    done:      { label: 'Completed', bg: 'bg-[#6B7556]/8',    border: 'border-[#6B7556]/30',   text: 'text-[#6B7556]',  dot: 'bg-[#6B7556]' },
-    cancelled: { label: 'Cancelled', bg: 'bg-red-50',         border: 'border-red-200',        text: 'text-red-500',    dot: 'bg-red-400' },
-    rejected:  { label: 'Rejected',  bg: 'bg-red-50',         border: 'border-red-200',        text: 'text-red-500',    dot: 'bg-red-400' },
+    pending:   { label: 'Pending',   bg: 'bg-amber-50',     border: 'border-amber-200',    text: 'text-amber-600', dot: 'bg-amber-400' },
+    confirmed: { label: 'Confirmed', bg: 'bg-green-50',     border: 'border-green-200',    text: 'text-green-600', dot: 'bg-green-400' },
+    done:      { label: 'Completed', bg: 'bg-[#6B7556]/8',  border: 'border-[#6B7556]/30', text: 'text-[#6B7556]', dot: 'bg-[#6B7556]' },
+    cancelled: { label: 'Cancelled', bg: 'bg-red-50',       border: 'border-red-200',      text: 'text-red-500',   dot: 'bg-red-400' },
+    rejected:  { label: 'Rejected',  bg: 'bg-red-50',       border: 'border-red-200',      text: 'text-red-500',   dot: 'bg-red-400' },
   }
   const getStatus = (s) => statusConfig[s?.toLowerCase()] ?? { label: s ?? 'Unknown', bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-500', dot: 'bg-gray-400' }
 
@@ -380,7 +383,6 @@ export default function AccountPage() {
   const sideW = collapsed ? 'w-[72px]' : 'w-64'
   const mainML = collapsed ? 'ml-[72px]' : 'ml-64'
 
-  // ── Full-screen loading ──────────────────────────────────────────────────────
   if (loading) return <LoadingScreen />
 
   if (error) return (
@@ -689,10 +691,11 @@ export default function AccountPage() {
                                       </p>
                                     )}
 
+                                    {/* ── UPDATED: Show "Paid" only ── */}
                                     {booking.status?.toLowerCase()==='confirmed' && booking.paymentStatus==='PAID' && (
                                       <div className="inline-flex items-center gap-1.5 font-['Cormorant_Garamond',serif] text-[0.62rem] tracking-[0.18em] uppercase text-[#6B7556] bg-[#6B7556]/10 border border-[#6B7556]/25 px-3 py-1.5 rounded-lg">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        Avance réglée · {booking.advancePaid} MAD
+                                        Paid
                                       </div>
                                     )}
 

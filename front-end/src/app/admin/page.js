@@ -26,7 +26,7 @@ const TIME_SLOTS = [
 const SETTINGS_MAP = {
   garden:  { label:'Sunlit Garden',    icon:'❧' },
   indoor:  { label:'Cosy Indoor',      icon:'⌂' },
-  terrace: { label:'Open-Air Terrace', icon:'◻' },
+  terrace: { label:'Open-Air Terrace', ic0o00n:'◻' },
 };
 
 const LaceCorner = ({ flip = false, danger = false }) => (

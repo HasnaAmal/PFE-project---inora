@@ -27,6 +27,18 @@ const fileFilter = (req, file, cb) => {
 };
 export const upload = multer({ storage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } });
 
+// Helper function for cookie options
+const getCookieOptions = () => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  return {
+    httpOnly: true,
+    secure: isProduction,        // true f railway (HTTPS), false f localhost
+    sameSite: isProduction ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    domain: isProduction ? '.railway.app' : undefined,
+  };
+};
+
 // ══════════════════════════════════════════
 //  REGISTER
 // ══════════════════════════════════════════
@@ -109,18 +121,13 @@ export const login = async (req, res) => {
 
     const accessToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-    res.cookie("token", accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    });
+    // ⚠️ MODIFICATION: Dynamic cookie options
+    res.cookie("token", accessToken, getCookieOptions());
 
     console.log('✅ Login successful for:', email);
     
     return res.status(200).json({
       message: "Login successful",
-      token: accessToken,
       user: {
         id: user.id,
         fullName: user.fullName,
@@ -140,7 +147,7 @@ export const login = async (req, res) => {
 // ══════════════════════════════════════════
 export const logout = async (req, res) => {
   try {
-    res.clearCookie("token");
+    res.clearCookie("token", getCookieOptions());
     return res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     console.error(error);
@@ -153,10 +160,8 @@ export const logout = async (req, res) => {
 // ══════════════════════════════════════════
 export const getMe = async (req, res) => {
   try {
-    // Essayer cookie d'abord
     let token = req.cookies?.token;
     
-    // Si pas de token dans cookie, essayer header Authorization
     if (!token && req.headers.authorization) {
       const authHeader = req.headers.authorization;
       if (authHeader.startsWith('Bearer ')) {
@@ -182,12 +187,12 @@ export const getMe = async (req, res) => {
     });
 
     if (!user || user.isDeleted) {
-      res.clearCookie("token");
+      res.clearCookie("token", getCookieOptions());
       return res.status(401).json({ message: 'Account not found.' });
     }
 
     if (user.suspended) {
-      res.clearCookie("token");
+      res.clearCookie("token", getCookieOptions());
       return res.status(403).json({ message: 'Your account has been suspended.' });
     }
 
@@ -279,10 +284,8 @@ export const resetPassword = async (req, res) => {
 // ══════════════════════════════════════════
 export const getLoggedInUser = async (req) => {
   try {
-    // Essayer cookie d'abord
     let token = req.cookies?.token;
     
-    // Si pas de token dans cookie, essayer header Authorization
     if (!token && req.headers.authorization) {
       const authHeader = req.headers.authorization;
       if (authHeader.startsWith('Bearer ')) {
@@ -304,7 +307,6 @@ export const getLoggedInUser = async (req) => {
 // ══════════════════════════════════════════
 export const getAdminUsers = async (req, res) => {
   try {
-    // Vérifier que l'utilisateur est admin
     if (req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Forbidden' });
     }
@@ -454,7 +456,7 @@ export const deleteAccount = async (req, res) => {
     if (!valid) return res.status(400).json({ message: 'Incorrect password.' });
 
     await prisma.user.update({ where: { id: req.user.id }, data: { isDeleted: true } });
-    res.clearCookie('token');
+    res.clearCookie('token', getCookieOptions());
     res.json({ message: 'Account deleted.' });
   } catch (e) {
     console.error(e);

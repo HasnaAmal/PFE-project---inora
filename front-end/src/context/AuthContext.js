@@ -10,20 +10,20 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // Fonction pour récupérer le token
-  const getToken = () => {
-    return localStorage.getItem('token');
-  };
+  // ⚠️ MODIFICATION 1: N7eydo getToken (ma3adch localStorage)
+  // const getToken = () => {
+  //   return localStorage.getItem('token');
+  // };
 
-  // Fonction pour faire des appels authentifiés
+  // ⚠️ MODIFICATION 2: authFetch mbeddel (ma3adch yjib token mn localStorage)
   const authFetch = async (url, options = {}) => {
-    const token = getToken();
     return fetch(url, {
       ...options,
-      credentials: 'include',
+      credentials: 'include', // ← HAD CHI KAYB3AT L COOKIE AUTOMATIQUEMENT
       headers: {
         'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` }),
+        // ⚠️ N7EYDO had l Authorization (cookie fiha token)
+        // ...(token && { 'Authorization': `Bearer ${token}` }),
         ...options.headers,
       },
     });
@@ -53,6 +53,7 @@ export function AuthProvider({ children }) {
 
   const refreshUser = () => fetchMe().catch(() => {});
 
+  // ⚠️ MODIFICATION 3: LOGIN (n7eydo localStorage)
   const login = async (email, password, selectedRole, adminCode) => {
     const res = await fetch(`${API}/api/auth/login`, {
       method:      'POST',
@@ -67,15 +68,16 @@ export function AuthProvider({ children }) {
     }
     const data = await res.json();
     
-    // 🔥 STOCKER LE TOKEN DANS localStorage
-    if (data.token) {
-      localStorage.setItem('token', data.token);
-    }
+    // ⚠️ COMMENTI HADI (ma3adch nkhzno token f localStorage)
+    // if (data.token) {
+    //   localStorage.setItem('token', data.token);
+    // }
     
     setUser(data.user ?? data);
     return data;
   };
 
+  // ⚠️ MODIFICATION 4: REGISTER (n7eydo localStorage)
   const register = async (fullName, email, password, adminCode) => {
     const res = await fetch(`${API}/api/auth/register`, {
       method:      'POST',
@@ -90,19 +92,20 @@ export function AuthProvider({ children }) {
     }
     const data = await res.json();
     
-    // 🔥 STOCKER LE TOKEN DANS localStorage (si le register renvoie un token)
-    if (data.token) {
-      localStorage.setItem('token', data.token);
-    }
+    // ⚠️ COMMENTI HADI (register ma3adch kayrj3 token)
+    // if (data.token) {
+    //   localStorage.setItem('token', data.token);
+    // }
     
     setUser(data.user ?? data);
     return data;
   };
 
+  // ⚠️ MODIFICATION 5: LOGOUT (n7eydo localStorage)
   const logout = async () => {
     await fetch(`${API}/api/auth/logout`, { method: 'POST', credentials: 'include' });
-    // 🔥 SUPPRIMER LE TOKEN
-    localStorage.removeItem('token');
+    // ⚠️ COMMENTI HADI (cookie kaytms7 mn backend)
+    // localStorage.removeItem('token');
     setUser(null);
     router.push('/');     // ← redirect to landing page
     router.refresh();     // ← force re-render so Navbar/DraftBanner reset
@@ -111,7 +114,8 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{ 
       user, setUser, login, register, logout, loading, refreshUser, 
-      authFetch, getToken
+      authFetch, // ⚠️ getToken m7yodi (ma3adch mawjod)
+      // getToken // ← N7EYDO HADI (optionnel)
     }}>
       {children}
     </AuthContext.Provider>

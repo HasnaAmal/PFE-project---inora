@@ -44,7 +44,7 @@ export default function Navbar() {
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
-  }, [user?.id]); // depend on user.id not the whole user object
+  }, [user?.id]);
 
   // ── Socket.io — real-time notifications ──────────────────────────────────
   useEffect(() => {
@@ -52,10 +52,9 @@ export default function Navbar() {
 
     const socket = io(process.env.NEXT_PUBLIC_API_URL, {
       withCredentials: true,
-      transports: ['websocket', 'polling'], // try WebSocket first, fall back to polling
+      transports: ['websocket', 'polling'],
     });
 
-    // emit join only AFTER connection is confirmed — fixes silent drop bug
     socket.on('connect', () => {
       console.log('[Socket] ✅ Connected:', socket.id);
       socket.emit('join', user.id);
@@ -87,7 +86,7 @@ export default function Navbar() {
       console.log('[Socket] Disconnecting');
       socket.disconnect();
     };
-  }, [user?.id]); // depend on user.id not the whole user object
+  }, [user?.id]);
 
   // ── Scroll handler ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -134,21 +133,23 @@ export default function Navbar() {
     }
   };
 
-const handleCheckout = async (notif) => {
-  await markAsRead(notif.id);
-  setNotifOpen(false);
-  setDropdownOpen(false);
-  setNotifications(prev => prev.filter(n => n.id !== notif.id)); // ← remove it
-  router.push(`/checkout?bookingId=${notif.bookingId}`);
-};
-const handleReview = async (notif) => {
-  await markAsRead(notif.id);
-  setNotifOpen(false);
-  let url = notif.actionUrl || `/reviews/new?bookingId=${notif.bookingId}`;
-  url = url.replace(/^\/review\?/, '/reviews/new?');
-  setNotifications(prev => prev.filter(n => n.id !== notif.id)); // ← remove it
-  router.push(url);
-};
+  const handleCheckout = async (notif) => {
+    await markAsRead(notif.id);
+    setNotifOpen(false);
+    setDropdownOpen(false);
+    setNotifications(prev => prev.filter(n => n.id !== notif.id));
+    router.push(`/checkout?bookingId=${notif.bookingId}`);
+  };
+
+  const handleReview = async (notif) => {
+    await markAsRead(notif.id);
+    setNotifOpen(false);
+    let url = notif.actionUrl || `/reviews/new?bookingId=${notif.bookingId}`;
+    url = url.replace(/^\/review\?/, '/reviews/new?');
+    setNotifications(prev => prev.filter(n => n.id !== notif.id));
+    router.push(url);
+  };
+
   if (loading) return null;
 
   const Avatar = ({ size = 8, textSize = 'text-sm' }) =>
@@ -356,7 +357,7 @@ const handleReview = async (notif) => {
                           <div className="px-5 py-10 text-center">
                             <div className="w-10 h-10 rounded-full bg-[#C87D87]/10 border border-[#C87D87]/20 flex items-center justify-center mx-auto mb-3">
                               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-[#C87D87]/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
                               </svg>
                             </div>
                             <p className="font-['Cormorant_Garamond',serif] italic text-[#7a6a5a]/60 text-sm">No notifications yet</p>
@@ -405,27 +406,27 @@ const handleReview = async (notif) => {
                                     {new Date(notif.createdAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}
                                   </p>
 
-                                 {/* Checkout button — only if unread */}
-{notif.type === 'BOOKING_CONFIRMED' && !notif.read && (
-  <button onClick={() => handleCheckout(notif)}
-    className="mt-2.5 w-full font-['Cormorant_Garamond',serif] text-[0.6rem] tracking-[0.15em] uppercase text-[#FBEAD6] bg-[#6B7556] px-3 py-2 rounded-xl hover:bg-[#4a5240] transition-all duration-300 flex items-center justify-center gap-1.5 shadow-[0_2px_10px_rgba(107,117,86,0.22)]">
-    <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
-    </svg>
-    Proceed to Payment →
-  </button>
-)}
+                                  {/* Checkout button — only if unread */}
+                                  {notif.type === 'BOOKING_CONFIRMED' && !notif.read && (
+                                    <button onClick={() => handleCheckout(notif)}
+                                      className="mt-2.5 w-full font-['Cormorant_Garamond',serif] text-[0.6rem] tracking-[0.15em] uppercase text-[#FBEAD6] bg-[#6B7556] px-3 py-2 rounded-xl hover:bg-[#4a5240] transition-all duration-300 flex items-center justify-center gap-1.5 shadow-[0_2px_10px_rgba(107,117,86,0.22)]">
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
+                                      </svg>
+                                      Proceed to Payment →
+                                    </button>
+                                  )}
 
-{/* Review button — only if unread */}
-{(notif.type === 'REVIEW_REQUEST' || notif.type === 'FEEDBACK_REQUEST') && !notif.read && (
-  <button onClick={() => handleReview(notif)}
-    className="mt-2.5 w-full font-['Cormorant_Garamond',serif] text-[0.6rem] tracking-[0.15em] uppercase text-[#FBEAD6] bg-[#C87D87] px-3 py-2 rounded-xl hover:bg-[#a85e6a] transition-all duration-300 flex items-center justify-center gap-1.5 shadow-[0_2px_10px_rgba(200,125,135,0.22)]">
-    <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.563.563 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/>
-    </svg>
-    Leave a Review →
-  </button>
-)}
+                                  {/* Review button — only if unread */}
+                                  {(notif.type === 'REVIEW_REQUEST' || notif.type === 'FEEDBACK_REQUEST') && !notif.read && (
+                                    <button onClick={() => handleReview(notif)}
+                                      className="mt-2.5 w-full font-['Cormorant_Garamond',serif] text-[0.6rem] tracking-[0.15em] uppercase text-[#FBEAD6] bg-[#C87D87] px-3 py-2 rounded-xl hover:bg-[#a85e6a] transition-all duration-300 flex items-center justify-center gap-1.5 shadow-[0_2px_10px_rgba(200,125,135,0.22)]">
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.563.563 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/>
+                                      </svg>
+                                      Leave a Review →
+                                    </button>
+                                  )}
 
                                 </div>
                               </div>

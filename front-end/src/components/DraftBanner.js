@@ -5,12 +5,12 @@ import Link from 'next/link';
 
 export default function DraftBanner() {
   const [draft, setDraft] = useState(null);
-  const { authFetch } = useAuth();  // ← AJOUTER CETTE LIGNE
+  const { authFetch } = useAuth();  // ✅ HAD CHI MZYAN
 
   useEffect(() => {
     const loadDraft = async () => {
       try {
-        const res = await authFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/drafts`);  // ← MODIFIER ICI
+        const res = await authFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/drafts`);  // ✅ MZYAN
         if (res.ok) {
           const data = await res.json();
           if (data?.id) setDraft(data);
@@ -25,7 +25,7 @@ export default function DraftBanner() {
   const deleteDraft = async () => {
     if (!draft?.id) return;
     try {
-      await authFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/drafts/${draft.id}`, {  // ← MODIFIER ICI
+      await authFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/drafts/${draft.id}`, {  // ✅ MZYAN
         method: 'DELETE',
       });
       setDraft(null);

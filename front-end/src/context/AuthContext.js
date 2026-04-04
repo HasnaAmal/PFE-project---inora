@@ -26,6 +26,13 @@ export function AuthProvider({ children }) {
       token = localStorage.getItem('token');
     }
     
+    // ⚠️ ZID HAD CONSOLE.LOG
+    console.log('🔑 [authFetch] URL:', url);
+    console.log('🔑 [authFetch] Token exists:', token ? 'YES' : 'NO');
+    if (token) {
+      console.log('🔑 [authFetch] Token (first 20 chars):', token.substring(0, 20) + '...');
+    }
+    
     const headers = {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -33,6 +40,9 @@ export function AuthProvider({ children }) {
     
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
+      console.log('✅ [authFetch] Authorization header added');
+    } else {
+      console.log('❌ [authFetch] No token found!');
     }
     
     return fetch(url, {
@@ -68,6 +78,8 @@ export function AuthProvider({ children }) {
 
   // MODIFIED: Login with localStorage fallback
   const login = async (email, password, selectedRole, adminCode) => {
+    console.log('🔐 [login] Starting login...');
+    
     const res = await fetch(`${API}/api/auth/login`, {
       method:      'POST',
       headers:     { 'Content-Type': 'application/json' },
@@ -81,16 +93,29 @@ export function AuthProvider({ children }) {
     }
     const data = await res.json();
     
+    console.log('📦 [login] Response data:', data);
+    console.log('🔑 [login] Token in response:', data.token ? 'YES' : 'NO');
+    
     // Store token in localStorage as fallback for cross-domain
     if (data.token) {
       localStorage.setItem('token', data.token);
+      console.log('✅ [login] Token stored in localStorage');
+      console.log('🔑 [login] Stored token (first 20 chars):', data.token.substring(0, 20) + '...');
     } else {
       // Try to get token from cookie
       const tokenFromCookie = getCookie('token');
+      console.log('🍪 [login] Token from cookie:', tokenFromCookie ? 'YES' : 'NO');
       if (tokenFromCookie) {
         localStorage.setItem('token', tokenFromCookie);
+        console.log('✅ [login] Token from cookie stored in localStorage');
+      } else {
+        console.log('❌ [login] No token found anywhere!');
       }
     }
+    
+    // Verify token was stored
+    const storedToken = localStorage.getItem('token');
+    console.log('🔍 [login] Verify localStorage token:', storedToken ? 'YES' : 'NO');
     
     setUser(data.user ?? data);
     return data;

@@ -14,39 +14,41 @@ const getCookie = (name) => {
   return null;
 };
 
-// 🔹 get token (مع التحقق من الصلاحية)
-const getToken = () => {
-  const token = getCookie('token') || localStorage.getItem('token') || null;
-  
-  // التحقق من أن token مازال صالح
-  if (token) {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      if (payload.exp && payload.exp * 1000 < Date.now()) {
-        // Token انتهى
-        localStorage.removeItem('token');
-        document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        return null;
-      }
-    } catch (e) {
-      console.error('Token parsing error:', e);
-      return null;
-    }
-  }
-  return token;
-};
-
-// 🔹 set token في localStorage و cookie
-const setToken = (token) => {
-  if (!token) return;
-  localStorage.setItem('token', token);
-  document.cookie = `token=${token}; path=/; max-age=86400`; // 24 heures
-};
-
 // 🔹 remove token
 const removeToken = () => {
   localStorage.removeItem('token');
   document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+};
+
+// 🔹 get token مع التحقق من الصلاحية
+const getToken = () => {
+  const token = getCookie('token') || localStorage.getItem('token') || null;
+  if (!token) return null;
+
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+
+    const payload = JSON.parse(atob(parts[1]));
+    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      // token expired
+      removeToken();
+      return null;
+    }
+  } catch (e) {
+    console.error('Token parsing error:', e);
+    removeToken();
+    return null;
+  }
+
+  return token;
+};
+
+// 🔹 set token
+const setToken = (token) => {
+  if (!token) return;
+  localStorage.setItem('token', token);
+  document.cookie = `token=${token}; path=/; max-age=86400`; // 24 heures
 };
 
 export function AuthProvider({ children }) {
@@ -55,7 +57,7 @@ export function AuthProvider({ children }) {
   const [authReady, setAuthReady] = useState(false);
   const router = useRouter();
 
-  // 🔹 fetch with auth و معالجة 401
+  // 🔹 fetch with auth header
   const authFetch = useCallback(async (url, options = {}) => {
     const token = getToken();
     const isFormData = options.body instanceof FormData;
@@ -83,10 +85,9 @@ export function AuthProvider({ children }) {
     return response;
   }, [router]);
 
-  // 🔥 التصحيح الأهم: endpoint صحيح
+  // 🔹 fetch current user
   const fetchMe = useCallback(async () => {
     const token = getToken();
-
     if (!token) {
       setUser(null);
       setLoading(false);
@@ -95,8 +96,7 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      // ✅ هنا التصحيح: استخدم api/profile/me
-      const res = await fetch(`${API}/api/profile/me`, {
+      const res = await fetch(`${API}/api/auth/me`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -106,7 +106,6 @@ export function AuthProvider({ children }) {
       });
 
       if (res.status === 401) {
-        // Token غير صالح
         removeToken();
         setUser(null);
         router.push('/login');
@@ -119,13 +118,11 @@ export function AuthProvider({ children }) {
         return;
       }
 
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const data = await res.json();
       setUser(data.user ?? data);
-      
+
     } catch (err) {
       console.error("fetchMe error:", err);
       setUser(null);
@@ -143,38 +140,30 @@ export function AuthProvider({ children }) {
 
   // 🔹 login
   const login = async (email, password, selectedRole, adminCode) => {
-    try {
-      const res = await fetch(`${API}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          email,
-          password,
-          role: selectedRole,
-          adminCode: adminCode || undefined,
-        }),
-      });
+    const res = await fetch(`${API}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        email,
+        password,
+        role: selectedRole,
+        adminCode: adminCode || undefined,
+      }),
+    });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || 'Login failed');
-      }
-
-      const data = await res.json();
-
-      if (data.token) {
-        setToken(data.token);
-      }
-
-      setUser(data.user ?? data);
-      
-      // رجع user مباشرة
-      return data;
-      
-    } catch (error) {
-      throw error;
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || 'Login failed');
     }
+
+    const data = await res.json();
+    if (data.token) setToken(data.token);
+    setUser(data.user ?? data);
+
+    // refresh immediately
+    await fetchMe();
+    return data;
   };
 
   // 🔹 register
@@ -197,12 +186,10 @@ export function AuthProvider({ children }) {
     }
 
     const data = await res.json();
-
-    if (data.token) {
-      setToken(data.token);
-    }
-
+    if (data.token) setToken(data.token);
     setUser(data.user ?? data);
+
+    await fetchMe();
     return data;
   };
 
@@ -213,7 +200,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error('Logout error:', error);
     }
-    
+
     removeToken();
     setUser(null);
     router.push('/');

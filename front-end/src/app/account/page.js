@@ -267,7 +267,7 @@ export default function AccountPage() {
     } finally { setDeleteLoading(false) }
   }
 const handleLogout = async () => {
-  const token = localStorage.getItem('token')
+  const token = localStorage.getItem('token');
   try {
     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
       method: 'POST',
@@ -276,14 +276,14 @@ const handleLogout = async () => {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
-    })
+    });
   } catch (err) {
-    console.error('Logout error:', err)
+    console.error('Logout error:', err);
   }
-  localStorage.removeItem('token')
-  setUser(null)
-  router.push('/')
-}
+  localStorage.removeItem('token');
+  setUser(null);
+  router.push('/');
+};
 
   const handleCancelBooking = async () => {
     if (!cancelTarget) return

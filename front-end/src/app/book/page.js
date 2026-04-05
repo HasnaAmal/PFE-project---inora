@@ -46,8 +46,8 @@ function getPricing(participants) {
 
 // ─── Draft hook (modified to use authFetch) ────────────────────────────────────────────────────
 function useDraft(authFetch) {
-  const [draftId, setDraftId]     = useState(null);
-  const [saving, setSaving]       = useState(false);
+  const [draftId, setDraftId] = useState(null);
+  const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
   const timer = useRef(null);
 
@@ -188,33 +188,32 @@ function LoadingScreen() {
 
 // ─── Page ──────────────────────────────────────────────────────────
 function BookContent() {
-  const router       = useRouter();
+  const router = useRouter();
   const searchParams = useSearchParams();
 
-  // ✅ جبنا authFetch من AuthContext
   const { user, loading, authFetch } = useAuth();
 
   const preselectedActivity = searchParams.get('activity') || '';
 
-  const [form,        setForm]        = useState({ ...EMPTY_FORM, activity: preselectedActivity });
-  const [step,        setStep]        = useState(preselectedActivity ? 1 : 0);
-  const [submitting,  setSubmitting]  = useState(false);
-  const [error,       setError]       = useState(null);
+  const [form, setForm] = useState({ ...EMPTY_FORM, activity: preselectedActivity });
+  const [step, setStep] = useState(preselectedActivity ? 1 : 0);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
   const [draftLoaded, setDraftLoaded] = useState(false);
 
-  // ✅ دير الـ authFetch لـ useDraft
   const { draftId, saving, lastSaved, loadDraft, saveDraft, submitBooking, deleteDraft } = useDraft(authFetch);
 
-  useEffect(() => { if (!loading && !user) router.push('/sign-up'); }, [user, loading, router]);
+  useEffect(() => { 
+    if (!loading && !user) router.push('/sign-up'); 
+  }, [user, loading, router]);
 
-  // ── Auto-fill from auth + merge draft ──────────────────────────
   useEffect(() => {
     if (!user) return;
 
     const userDefaults = {
       fullName: user.name || user.fullName || '',
-      email:    user.email || '',
-      phone:    user.phone || user.phoneNumber || '',
+      email: user.email || '',
+      phone: user.phone || user.phoneNumber || '',
     };
 
     loadDraft().then(saved => {
@@ -224,8 +223,8 @@ function BookContent() {
           ...userDefaults,
           ...saved,
           fullName: saved.fullName || userDefaults.fullName,
-          email:    saved.email    || userDefaults.email,
-          phone:    saved.phone    || userDefaults.phone,
+          email: saved.email || userDefaults.email,
+          phone: saved.phone || userDefaults.phone,
           activity: preselectedActivity || saved.activity || '',
         });
         if (!preselectedActivity && saved.activity) setStep(1);
@@ -242,7 +241,6 @@ function BookContent() {
     saveDraft(updated);
   };
 
-  // ✅ handleSubmit — استعمل authFetch عوض fetch عادي
   const handleSubmit = async () => {
     setError(null);
     setSubmitting(true);
@@ -282,7 +280,6 @@ function BookContent() {
 
       <div className="fixed top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#C87D87]/30 to-transparent z-50"/>
 
-      {/* ── Header ── */}
       <header className="sticky top-0 z-40 px-5 py-3 flex items-center justify-between"
         style={{
           backgroundColor: '#6B7556',
@@ -326,10 +323,9 @@ function BookContent() {
 
       <div className="h-5" style={{ background: 'linear-gradient(to bottom, rgba(107,117,86,0.10), transparent)' }}/>
 
-      {/* ── Main ── */}
       <main className="w-full px-4 sm:px-8 pb-16 relative z-10">
 
-        {/* ══ STEP 0 — Activity ══ */}
+        {/* STEP 0 — Activity */}
         {step === 0 && (
           <div className="step-enter">
             <div className="flex items-start justify-between mb-8 px-1">
@@ -376,7 +372,7 @@ function BookContent() {
           </div>
         )}
 
-        {/* ══ STEP 1 — Details ══ */}
+        {/* STEP 1 — Details */}
         {step === 1 && (
           <div className="step-enter">
             <div className="flex items-start justify-between mb-8 px-1">
@@ -392,7 +388,6 @@ function BookContent() {
               <span className="font-['Playfair_Display',serif] italic text-[5rem] text-[#C87D87]/8 leading-none select-none mt-1">02</span>
             </div>
 
-            {/* Activity pill */}
             <div className="inline-flex items-center gap-2.5 px-4 py-2 mb-6 rounded-xl"
               style={{ background: 'rgba(107,117,86,0.09)', border: '1px solid rgba(107,117,86,0.18)' }}>
               <span className="text-[#6B7556] text-base">{ACTIVITIES.find(a => a.title === form.activity)?.icon || '◈'}</span>
@@ -405,7 +400,6 @@ function BookContent() {
             </div>
 
             <div className="space-y-6">
-              {/* Guests + Date */}
               <div className="grid grid-cols-[auto_1fr] gap-8 items-start">
                 <div>
                   <Label>Guests</Label>
@@ -429,7 +423,6 @@ function BookContent() {
                 </div>
               </div>
 
-              {/* Time slots */}
               <div>
                 <Label>Preferred Time</Label>
                 <div className="flex gap-2.5 mt-1">
@@ -455,14 +448,12 @@ function BookContent() {
                 </div>
               </div>
 
-              {/* Divider */}
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-px bg-[#3a3027]/6"/>
                 <svg width="8" height="8" viewBox="0 0 8 8"><rect x="1" y="1" width="6" height="6" transform="rotate(45 4 4)" fill="none" stroke="#C87D87" strokeWidth="0.7" strokeOpacity="0.38"/></svg>
                 <div className="flex-1 h-px bg-[#3a3027]/6"/>
               </div>
 
-              {/* Decoration + Location */}
               <div className="grid grid-cols-[1fr_1.3fr] gap-6 items-start">
                 <div>
                   <Label>Decoration Style</Label>
@@ -516,7 +507,7 @@ function BookContent() {
           </div>
         )}
 
-        {/* ══ STEP 2 — Personal Info ══ */}
+        {/* STEP 2 — Personal Info */}
         {step === 2 && (
           <div className="step-enter">
             <div className="flex items-start justify-between mb-8 px-1">
@@ -619,7 +610,7 @@ function BookContent() {
           </div>
         )}
 
-        {/* ══ STEP 3 — Review ══ */}
+        {/* STEP 3 — Review */}
         {step === 3 && (
           <div className="step-enter">
             <div className="flex items-start justify-between mb-8 px-1">
@@ -636,7 +627,6 @@ function BookContent() {
             </div>
 
             <div className="grid grid-cols-[1.1fr_0.9fr] gap-4 mb-5">
-              {/* Booking info */}
               <div className="rounded-2xl overflow-hidden"
                 style={{ background: 'rgba(255,255,255,0.60)', border: '1px solid rgba(58,48,39,0.08)', boxShadow: '0 1px 8px rgba(58,48,39,0.04)' }}>
                 <div className="px-5 py-3" style={{ background: 'rgba(255,255,255,0.40)', borderBottom: '1px solid rgba(58,48,39,0.06)' }}>
@@ -644,12 +634,12 @@ function BookContent() {
                 </div>
                 <div>
                   {[
-                    { l: 'Activity',   v: form.activity },
-                    { l: 'Date',       v: form.date ? new Date(form.date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '—' },
-                    { l: 'Time',       v: (() => { const t = TIME_SLOTS.find(t => t.hours === form.timeSlot); return t ? `${t.icon} ${t.label} · ${t.hours}` : '—'; })() },
-                    { l: 'Guests',     v: `${form.participants} ${form.participants === 1 ? 'person' : 'people'}` },
+                    { l: 'Activity', v: form.activity },
+                    { l: 'Date', v: form.date ? new Date(form.date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '—' },
+                    { l: 'Time', v: (() => { const t = TIME_SLOTS.find(t => t.hours === form.timeSlot); return t ? `${t.icon} ${t.label} · ${t.hours}` : '—'; })() },
+                    { l: 'Guests', v: `${form.participants} ${form.participants === 1 ? 'person' : 'people'}` },
                     { l: 'Decoration', v: (() => { const d = SETTINGS.find(d => d.key === form.setting); return d ? `${d.icon} ${d.label}` : '—'; })() },
-                    { l: 'Location',   v: form.location || '—' },
+                    { l: 'Location', v: form.location || '—' },
                   ].map(({ l, v }, idx, arr) => (
                     <div key={l} className="flex justify-between items-baseline px-5 py-2.5"
                       style={{ borderBottom: idx < arr.length - 1 ? '1px solid rgba(58,48,39,0.05)' : 'none' }}>
@@ -660,19 +650,18 @@ function BookContent() {
                 </div>
               </div>
 
-              {/* Contact + Notes */}
               <div className="flex flex-col gap-3">
                 {[
                   { title: 'Contact', rows: [
-                    { l: 'Name',  v: form.fullName },
+                    { l: 'Name', v: form.fullName },
                     { l: 'Email', v: form.email },
                     { l: 'Phone', v: form.phone },
-                    { l: 'Via',   v: form.preferredContact },
+                    { l: 'Via', v: form.preferredContact },
                   ]},
                   { title: 'Notes', rows: [
                     { l: 'Allergies', v: form.allergies || '—' },
-                    { l: 'Requests',  v: form.specialRequests || '—' },
-                    { l: 'Theme',     v: form.activityTheme || '—' },
+                    { l: 'Requests', v: form.specialRequests || '—' },
+                    { l: 'Theme', v: form.activityTheme || '—' },
                   ]},
                 ].map(({ title, rows }) => (
                   <div key={title} className="rounded-2xl overflow-hidden"
@@ -692,11 +681,10 @@ function BookContent() {
               </div>
             </div>
 
-            {/* ── Price (tiered group discount) ── */}
             {(() => {
               const { rate, label } = getPricing(form.participants);
-              const total  = form.participants * rate;
-              const saved  = form.participants > 2 ? form.participants * (150 - rate) : 0;
+              const total = form.participants * rate;
+              const saved = form.participants > 2 ? form.participants * (150 - rate) : 0;
               return (
                 <div className="flex items-center justify-between px-6 py-4 mb-5 rounded-xl"
                   style={{ background: 'linear-gradient(135deg,rgba(107,117,86,0.09),rgba(107,117,86,0.05))', border: '1px solid rgba(107,117,86,0.14)' }}>
@@ -759,7 +747,6 @@ function BookContent() {
 
       </main>
 
-      {/* ── Draft indicator ── */}
       <div className="fixed bottom-5 right-5 z-50 flex items-center gap-1.5
         bg-[#FBEAD6]/92 border border-[#3a3027]/8 rounded-xl px-4 py-2.5
         shadow-[0_2px_12px_rgba(58,48,39,0.07)] backdrop-blur-sm
@@ -777,7 +764,6 @@ function BookContent() {
   );
 }
 
-// ─── Page wrapper avec Suspense ───
 export default function BookPage() {
   return (
     <Suspense fallback={<LoadingScreen />}>

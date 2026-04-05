@@ -266,11 +266,24 @@ export default function AccountPage() {
       setUser(null); router.push('/')
     } finally { setDeleteLoading(false) }
   }
-
-  const handleLogout = async () => {
-    try { await authFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, { method: 'POST' }) } catch {}
-    setUser(null); router.push('/')
+const handleLogout = async () => {
+  const token = localStorage.getItem('token')
+  try {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+  } catch (err) {
+    console.error('Logout error:', err)
   }
+  localStorage.removeItem('token')
+  setUser(null)
+  router.push('/')
+}
 
   const handleCancelBooking = async () => {
     if (!cancelTarget) return

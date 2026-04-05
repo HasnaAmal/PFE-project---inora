@@ -1,20 +1,27 @@
 import { prisma } from '../lib/prisma.js';
-import bcrypt     from 'bcrypt'; // ✅ bcryptjs not bcrypt (matches rest of your project)
-import fs         from 'fs';
-import path       from 'path';
+import bcrypt from 'bcrypt';
+import fs from 'fs';
+import path from 'path';
 
 // ── GET /api/profile/me ──────────────────────────────────────────
 export const getMyProfile = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
-      where:  { id: req.user.id },
+      where: { id: req.user.id },
       select: {
-        id: true, fullName: true, email: true,
-        avatarUrl: true, role: true, createdAt: true,
+        id: true, 
+        fullName: true, 
+        email: true,
+        //phone: true,
+        avatarUrl: true, 
+        role: true, 
+        createdAt: true,
       },
     });
     if (!user) return res.status(404).json({ message: 'User not found' });
-    res.json(user);
+    
+    // ✅ Return wrapped in { user } for frontend compatibility
+    res.json({ user });
   } catch (err) {
     console.error('getMyProfile error:', err.message);
     res.status(500).json({ message: 'Server error' });
@@ -29,7 +36,6 @@ export const updateMyAvatar = async (req, res) => {
 
     const avatarUrl = `/uploads/avatars/${req.file.filename}`;
 
-    // delete old file if stored locally
     const existing = await prisma.user.findUnique({ where: { id: req.user.id } });
     if (existing?.avatarUrl?.startsWith('/uploads/')) {
       const oldPath = path.join(process.cwd(), existing.avatarUrl);
@@ -37,8 +43,8 @@ export const updateMyAvatar = async (req, res) => {
     }
 
     const updated = await prisma.user.update({
-      where:  { id: req.user.id },
-      data:   { avatarUrl },
+      where: { id: req.user.id },
+      data: { avatarUrl },
       select: { avatarUrl: true },
     });
 
@@ -57,8 +63,8 @@ export const updateMyName = async (req, res) => {
       return res.status(400).json({ message: 'Name cannot be empty' });
 
     const updated = await prisma.user.update({
-      where:  { id: req.user.id },
-      data:   { fullName: fullName.trim() },
+      where: { id: req.user.id },
+      data: { fullName: fullName.trim() },
       select: { id: true, fullName: true, email: true, avatarUrl: true, role: true, createdAt: true },
     });
     res.json(updated);
@@ -87,8 +93,8 @@ export const updateMyEmail = async (req, res) => {
       return res.status(400).json({ message: 'Email already in use' });
 
     const updated = await prisma.user.update({
-      where:  { id: req.user.id },
-      data:   { email },
+      where: { id: req.user.id },
+      data: { email },
       select: { id: true, fullName: true, email: true, avatarUrl: true, role: true, createdAt: true },
     });
     res.json(updated);
@@ -118,7 +124,7 @@ export const updateMyPassword = async (req, res) => {
     const hashed = await bcrypt.hash(newPassword, 10);
     await prisma.user.update({
       where: { id: req.user.id },
-      data:  { password: hashed },
+      data: { password: hashed },
     });
     res.json({ message: 'Password updated successfully' });
   } catch (err) {
@@ -164,7 +170,7 @@ export const deleteMyAccount = async (req, res) => {
 
     await prisma.user.update({
       where: { id: req.user.id },
-      data:  { isDeleted: true, deletedAt: new Date() },
+      data: { isDeleted: true, deletedAt: new Date() },
     });
 
     res.clearCookie('token');
@@ -196,7 +202,7 @@ export const cancelMyBooking = async (req, res) => {
 
     const updated = await prisma.booking.update({
       where: { id: bookingId },
-      data:  { status: 'cancelled' },
+      data: { status: 'cancelled' },
     });
     res.json(updated);
   } catch (err) {

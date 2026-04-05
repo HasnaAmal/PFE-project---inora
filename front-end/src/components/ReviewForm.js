@@ -13,22 +13,27 @@ export default function ReviewForm() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
   const submitReview = async () => {
     setError('');
-    if (comment.trim().length < 10)
+    if (comment.trim().length < 10) {
       return setError('Please write at least 10 characters.');
+    }
 
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reviews`, {
+      const res = await fetch(`${API_URL}/api/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ rating, comment, bookingId }), // ✅ correct field + env var
+        body: JSON.stringify({ rating, comment, bookingId }),
       });
 
       const data = await res.json();
-      if (!res.ok) return setError(data.message || 'Something went wrong.');
+      if (!res.ok) {
+        return setError(data.message || 'Something went wrong.');
+      }
       setSubmitted(true);
     } catch (e) {
       setError('Network error. Please try again.');
@@ -36,6 +41,7 @@ export default function ReviewForm() {
       setLoading(false);
     }
   };
+
   if (submitted) {
     return (
       <div className="bg-white/70 border border-[#C87D87]/20 p-10 text-center max-w-md mx-auto">
@@ -83,6 +89,13 @@ export default function ReviewForm() {
         </h3>
         <div className="w-10 h-px bg-[#C87D87] mx-auto mt-3" />
       </div>
+
+      {/* Error message */}
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-500 text-sm text-center rounded">
+          {error}
+        </div>
+      )}
 
       {/* ── STAR RATING ── */}
       <div className="mb-8">
@@ -132,9 +145,10 @@ export default function ReviewForm() {
       {/* ── SUBMIT ── */}
       <button
         onClick={submitReview}
-        className="w-full font-['Cormorant_Garamond',serif] text-sm tracking-[0.22em] uppercase text-white bg-[#6B7556] border border-[#6B7556] py-3 hover:bg-[#C87D87] hover:border-[#C87D87] transition-all duration-300"
+        disabled={loading}
+        className="w-full font-['Cormorant_Garamond',serif] text-sm tracking-[0.22em] uppercase text-white bg-[#6B7556] border border-[#6B7556] py-3 hover:bg-[#C87D87] hover:border-[#C87D87] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Submit Review
+        {loading ? 'Submitting...' : 'Submit Review'}
       </button>
 
       {/* Footer note */}

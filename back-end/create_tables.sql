@@ -1,0 +1,48 @@
+CREATE TABLE IF NOT EXISTS "User" (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+    "fullName" TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    "createdAt" TIMESTAMP DEFAULT NOW(),
+    role TEXT DEFAULT 'member',
+    "avatarUrl" TEXT,
+    suspended BOOLEAN DEFAULT false
+);
+CREATE TABLE IF NOT EXISTS "Booking" (
+    id SERIAL PRIMARY KEY,
+    "fullName" TEXT NOT NULL,
+    email TEXT NOT NULL,
+    phone TEXT,
+    activity TEXT,
+    participants INTEGER DEFAULT 1,
+    date TIMESTAMP,
+    "timeSlot" TEXT,
+    status TEXT DEFAULT 'pending',
+    "userId" TEXT,
+    paid BOOLEAN DEFAULT false,
+    "paymentStatus" TEXT DEFAULT 'PENDING',
+    "paidAt" TIMESTAMP,
+    allergies TEXT,
+    "specialRequests" TEXT,
+    "additionalNotes" TEXT,
+    "preferredContact" TEXT DEFAULT 'telephone',
+    "activityTheme" TEXT,
+    setting TEXT,
+    "isDraft" BOOLEAN DEFAULT false,
+    "draftId" TEXT,
+    "createdAt" TIMESTAMP DEFAULT NOW(),
+    "advancePaid" FLOAT,
+    CONSTRAINT "Booking_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS "Review" (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+    "userId" TEXT NOT NULL,
+    comment TEXT NOT NULL,
+    rating INTEGER NOT NULL,
+    approved BOOLEAN DEFAULT false,
+    "createdAt" TIMESTAMP DEFAULT NOW(),
+    "bookingId" INTEGER UNIQUE,
+    CONSTRAINT "Review_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"(id) ON DELETE CASCADE,
+    CONSTRAINT "Review_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"(id) ON DELETE SET NULL
+);

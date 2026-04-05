@@ -1,40 +1,66 @@
 import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/prisma.js';
 
-// ── protect: verifies token + attaches req.user ──
 export const protect = async (req, res, next) => {
   try {
-    const token = req.cookies.token;
+    let token = null;
 
-    if (!token)
+    // Authorization header
+    if (req.headers.authorization?.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+
+    // Cookie fallback
+    if (!token && req.cookies?.token) {
+      token = req.cookies.token;
+    }
+
+    if (!token) {
       return res.status(401).json({ message: 'No token provided' });
+    }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await prisma.user.findUnique({ where: { id: decoded.id } });
 
-    if (!user || user.isDeleted)
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        role: true,
+        avatarUrl: true,
+        isDeleted: true,
+        suspended: true,
+      }
+    });
+
+    if (!user || user.isDeleted) {
       return res.status(401).json({ message: 'Account not found.' });
+    }
 
-    if (user.suspended)
-      return res.status(403).json({ message: 'Your account has been suspended. Please contact support.' });
+    if (user.suspended) {
+      return res.status(403).json({ message: 'Account suspended.' });
+    }
 
     req.user = user;
     next();
+
   } catch (error) {
-    console.error('Auth error:', error.message);
-    return res.status(401).json({ message: 'Invalid token' });
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Token expired' });
+    }
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+    return res.status(401).json({ message: 'Authentication failed' });
   }
 };
 
-// ── isAdmin: protect + role check in one step ──
-export const isAdmin = [
-  protect,
-  (req, res, next) => {
-    if (req.user?.role !== 'admin')
-      return res.status(403).json({ message: 'Accès réservé aux administrateurs' });
-    next();
+export const isAdmin = (req, res, next) => {
+  if (req.user?.role !== 'admin') {
+    return res.status(403).json({ message: 'Access denied. Admin only.' });
   }
-];
+  next();
+};
 
-// keep default export so existing imports don't break
 export default protect;

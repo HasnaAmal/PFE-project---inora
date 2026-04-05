@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
@@ -55,7 +56,6 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
   const [paying,   setPaying]   = useState(false);
   const [error,    setError]    = useState(null);
   const [focused,  setFocused]  = useState(null);
-  // 'advance' = pay deposit now, rest on the day | 'full' = pay everything online now
   const [payMode,  setPayMode]  = useState('advance');
 
   const participants = parseInt(booking?.participants) || 1;
@@ -91,7 +91,6 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
-          // ✅ send payMode so backend knows which amount to charge
           body: JSON.stringify({ bookingId, payMode }),
         }
       );
@@ -552,9 +551,9 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
 }
 
 // ════════════════════════════════════════
-//  PAGE
+//  PAGE CONTENT (with useSearchParams)
 // ════════════════════════════════════════
-export default function CheckoutPage() {
+function CheckoutContent() {
   const { user, loading } = useAuth();
   const searchParams = useSearchParams();
   const router       = useRouter();
@@ -564,7 +563,7 @@ export default function CheckoutPage() {
   const [fetchLoading, setFetchLoading] = useState(true);
   const [error,        setError]        = useState(null);
   const [paid,         setPaid]         = useState(false);
-  const [paidMode,     setPaidMode]     = useState('advance'); // stored for success screen
+  const [paidMode,     setPaidMode]     = useState('advance');
   const [paidAmount,   setPaidAmount]   = useState(ADVANCE_AMOUNT);
 
   useEffect(() => {
@@ -816,5 +815,24 @@ export default function CheckoutPage() {
         </Elements>
       </main>
     </div>
+  );
+}
+
+// ════════════════════════════════════════
+//  MAIN PAGE (with Suspense boundary)
+// ════════════════════════════════════════
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center"
+        style={{ background: 'linear-gradient(150deg,#4e5a3c 0%,#6B7556 45%,#5a6347 80%,#4a5535 100%)' }}>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-[#FBEAD6]/30 border-t-[#FBEAD6] rounded-full animate-spin" />
+          <p className="font-['Cormorant_Garamond',serif] italic text-[#FBEAD6]/60 text-sm">Loading payment...</p>
+        </div>
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
   );
 }

@@ -10,17 +10,18 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const fetchMe = async () => {
-    const res = await fetch(`${API}/api/auth/me`, { credentials: 'include' });
-    if (res.status === 403) {
-      setUser(null);
-      router.push('/login?suspended=true');
-      return;
-    }
-    if (!res.ok) throw new Error('Not logged in');
-    const data = await res.json();
-    setUser(data.user ?? data);
-  };
+ const fetchMe = async () => {
+  const res = await fetch(`${API}/api/auth/me`, { credentials: 'include' });
+  if (res.status === 403) {
+    setUser(null);
+    router.push('/login?suspended=true');
+    return;
+  }
+  if (!res.ok) throw new Error('Not logged in');
+  const data = await res.json();
+  // ✅ data.user always has avatarUrl if your /me endpoint returns it
+  setUser(data.user ?? data);
+};
 
   useEffect(() => {
     fetchMe()

@@ -9,7 +9,7 @@ export default function DraftBanner() {
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/drafts`, { credentials: 'include' })
-      .then(r => r.ok ? r.json() : null)       // ← guard non-200 responses
+      .then(r => r.ok ? r.json() : null)
       .then(d => {
         if (d?.id) { setDraft(d); setVisible(true); }
       })
@@ -17,16 +17,16 @@ export default function DraftBanner() {
   }, []);
 
   const discard = async () => {
-    if (!draft?.id) return;                    // ← guard null draft
+    if (!draft?.id) return;
     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/drafts/${draft.id}`,
       { method: 'DELETE', credentials: 'include' });
-    setDraft(null);                            // ← clear draft state too
+    setDraft(null);
     setVisible(false);
   };
 
   const resume = () => router.push('/book');
 
-  if (!visible || !draft) return null;         // ← this already guards render
+  if (!visible || !draft) return null;
 
   const fd = draft.formData || {};
 
@@ -42,10 +42,10 @@ export default function DraftBanner() {
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className="font-['Playfair_Display',serif] italic text-[#3a3027] text-sm leading-tight">
+          <p className="font-['Playfair_Display',serif] italic text-[#3a3027] text-[0.7rem] sm:text-xs leading-tight">
             You have an unfinished booking
           </p>
-          <p className="font-['Cormorant_Garamond',serif] italic text-[#7a6a5a]/60 text-xs mt-0.5 truncate">
+          <p className="font-['Cormorant_Garamond',serif] italic text-[#7a6a5a]/60 text-[0.6rem] sm:text-xs mt-0.5 truncate">
             {fd.activity || 'Activity not yet selected'}
             {fd.date
               ? ` · ${new Date(fd.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`
@@ -55,13 +55,13 @@ export default function DraftBanner() {
 
         <div className="flex items-center gap-2 flex-shrink-0">
           <button onClick={resume}
-            className="font-['Cormorant_Garamond',serif] text-[0.6rem] tracking-widest uppercase
-              px-3 py-1.5 bg-[#C87D87] text-[#FBEAD6] rounded-lg hover:bg-[#b36d77] transition-all">
+            className="font-['Cormorant_Garamond',serif] text-[0.55rem] sm:text-[0.6rem] tracking-widest uppercase
+              px-2.5 sm:px-3 py-1.5 bg-[#C87D87] text-[#FBEAD6] rounded-lg hover:bg-[#b36d77] transition-all">
             Continue
           </button>
           <button onClick={discard}
-            className="font-['Cormorant_Garamond',serif] text-[0.6rem] tracking-widest uppercase
-              px-3 py-1.5 border border-[#3a3027]/12 text-[#7a6a5a]/60 rounded-lg
+            className="font-['Cormorant_Garamond',serif] text-[0.55rem] sm:text-[0.6rem] tracking-widest uppercase
+              px-2.5 sm:px-3 py-1.5 border border-[#3a3027]/12 text-[#7a6a5a]/60 rounded-lg
               hover:bg-[#3a3027]/5 transition-all">
             Discard
           </button>

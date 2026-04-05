@@ -33,7 +33,7 @@ export default function ForgotPassword() {
 
   return (
     <div
-      className="min-h-screen w-full flex items-center justify-center relative overflow-hidden"
+      className="min-h-screen w-full flex items-center justify-center relative overflow-hidden px-4"
       style={{ background: 'linear-gradient(150deg,#4e5a3c 0%,#6B7556 45%,#5a6347 80%,#4a5535 100%)' }}
     >
       <style>{`
@@ -51,13 +51,13 @@ export default function ForgotPassword() {
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{ backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`, backgroundSize:'200px' }} />
 
-      {/* ORBS */}
-      <div className="absolute top-10 left-10 w-64 h-64 rounded-full pointer-events-none"
+      {/* ORBS — hidden on mobile to reduce paint */}
+      <div className="hidden sm:block absolute top-10 left-10 w-64 h-64 rounded-full pointer-events-none"
         style={{ background:'radial-gradient(circle,rgba(251,234,214,0.10) 0%,transparent 70%)', animation:'floatOrb 10s ease-in-out infinite', filter:'blur(18px)' }} />
-      <div className="absolute bottom-10 right-10 w-72 h-72 rounded-full pointer-events-none"
+      <div className="hidden sm:block absolute bottom-10 right-10 w-72 h-72 rounded-full pointer-events-none"
         style={{ background:'radial-gradient(circle,rgba(200,125,135,0.12) 0%,transparent 70%)', animation:'floatOrb 13s ease-in-out infinite 2s', filter:'blur(22px)' }} />
 
-      {/* LACE SVG — identical to login */}
+      {/* LACE SVG */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
         {Array.from({length:30}).map((_,row)=>Array.from({length:48}).map((_,col)=>{const x=col*32+(row%2===0?0:16),y=row*32;return <circle key={`d-${row}-${col}`} cx={x} cy={y} r="1.2" fill="#FBEAD6" fillOpacity="0.22"/>}))}
         {Array.from({length:30}).map((_,row)=>Array.from({length:47}).map((_,col)=>{const x1=col*32+(row%2===0?0:16),y1=row*32;return <line key={`h-${row}-${col}`} x1={x1} y1={y1} x2={x1+32} y2={y1} stroke="#FBEAD6" strokeWidth="0.35" strokeOpacity="0.18"/>}))}
@@ -109,9 +109,9 @@ export default function ForgotPassword() {
       </svg>
 
       {/* FORM */}
-      <div className="relative z-10" style={{ animation:'formIn 0.9s cubic-bezier(.4,0,.2,1) forwards 0.2s', opacity:0 }}>
+      <div className="relative z-10 w-full flex justify-center" style={{ animation:'formIn 0.9s cubic-bezier(.4,0,.2,1) forwards 0.2s', opacity:0 }}>
         <form onSubmit={handleSubmit}
-          className="relative w-[370px] bg-[#FBEAD6]/92 backdrop-blur-xl border border-[#FBEAD6]/25 rounded-2xl px-7 py-6 shadow-[0_32px_90px_rgba(10,18,6,0.55)]">
+          className="relative w-full max-w-[370px] bg-[#FBEAD6]/92 backdrop-blur-xl border border-[#FBEAD6]/25 rounded-2xl px-5 py-5 sm:px-7 sm:py-6 shadow-[0_32px_90px_rgba(10,18,6,0.55)]">
 
           <div className="absolute inset-0 rounded-2xl border border-[#C87D87]/12 pointer-events-none"/>
           <div className="absolute inset-[5px] rounded-xl border border-[#C87D87]/8 pointer-events-none"/>
@@ -119,7 +119,7 @@ export default function ForgotPassword() {
           {/* Header */}
           <div className="text-center mb-5">
             <Link href="/"
-              className="font-['Playfair_Display',serif] italic text-2xl text-[#C87D87] tracking-widest block mb-2 hover:text-[#a85e6a] transition-colors duration-300">
+              className="font-['Playfair_Display',serif] italic text-xl sm:text-2xl text-[#C87D87] tracking-widest block mb-2 hover:text-[#a85e6a] transition-colors duration-300">
               Inora
             </Link>
             <div className="flex items-center justify-center gap-2 mb-2">
@@ -138,7 +138,7 @@ export default function ForgotPassword() {
             <p className="font-['Cormorant_Garamond',serif] italic text-[0.6rem] tracking-[0.32em] uppercase text-[#C87D87]/55 mb-1">
               Account Recovery
             </p>
-            <h2 className="font-['Playfair_Display',serif] italic text-2xl text-[#5a6347] leading-tight">
+            <h2 className="font-['Playfair_Display',serif] italic text-xl sm:text-2xl text-[#5a6347] leading-tight">
               Reset Password
             </h2>
             <p className="font-['Cormorant_Garamond',serif] italic text-sm text-[#7a6a5a]/65 mt-2 leading-snug">
@@ -174,7 +174,7 @@ export default function ForgotPassword() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                className="w-full px-3.5 py-2 bg-white/55 border border-[#C87D87]/18 focus:border-[#C87D87]/50 focus:bg-white/70 focus:outline-none rounded-lg font-['Cormorant_Garamond',serif] italic text-sm text-[#3a3027] placeholder:text-[#7a6a5a]/35 transition-all duration-300 group-hover:border-[#C87D87]/28"
+                className="w-full px-3.5 py-2.5 sm:py-2 bg-white/55 border border-[#C87D87]/18 focus:border-[#C87D87]/50 focus:bg-white/70 focus:outline-none rounded-lg font-['Cormorant_Garamond',serif] italic text-base sm:text-sm text-[#3a3027] placeholder:text-[#7a6a5a]/35 transition-all duration-300 group-hover:border-[#C87D87]/28"
               />
               <div className="absolute bottom-0 left-2 right-2 h-px bg-gradient-to-r from-transparent via-[#C87D87]/40 to-transparent opacity-0 group-focus-within:opacity-100 transition-opacity duration-500"/>
             </div>
@@ -182,7 +182,7 @@ export default function ForgotPassword() {
 
           {/* Submit */}
           <button type="submit" disabled={loading || !!message}
-            className="w-full mt-4 relative overflow-hidden font-['Cormorant_Garamond',serif] text-sm tracking-[0.28em] uppercase text-white border-0 py-2.5 rounded-xl transition-all duration-300 disabled:opacity-50 group bg-[#6B7556] hover:bg-[#5a6347]">
+            className="w-full mt-4 relative overflow-hidden font-['Cormorant_Garamond',serif] text-sm tracking-[0.28em] uppercase text-white border-0 py-3 sm:py-2.5 rounded-xl transition-all duration-300 disabled:opacity-50 group bg-[#6B7556] hover:bg-[#5a6347] min-h-[44px]">
             <span className="relative z-10 flex items-center justify-center gap-2">
               <span className="opacity-50 text-[0.5rem]">◆</span>
               {loading ? '— Sending —' : 'Send Reset Link'}

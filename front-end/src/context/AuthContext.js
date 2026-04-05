@@ -16,7 +16,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // ✅ CRITICAL: authFetch function that adds token to all requests
+  // ✅ authFetch function that adds token to all requests
   const authFetch = useCallback(async (url, options = {}) => {
     const token = getToken();
     const isFormData = options.body instanceof FormData;
@@ -26,9 +26,11 @@ export function AuthProvider({ children }) {
       ...options.headers,
     };
     
-    // Add Authorization header if token exists
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
+      console.log('✅ [authFetch] Added Authorization header for:', url);
+    } else {
+      console.warn('⚠️ [authFetch] No token for:', url);
     }
 
     const response = await fetch(url, {
@@ -37,8 +39,8 @@ export function AuthProvider({ children }) {
       headers,
     });
 
-    // Handle 401 - token expired
     if (response.status === 401) {
+      console.log('❌ [authFetch] Got 401 for:', url);
       localStorage.removeItem('token');
       setUser(null);
       router.push('/login?expired=true');
@@ -48,24 +50,25 @@ export function AuthProvider({ children }) {
     return response;
   }, [router]);
 
+  // ✅ FIXED: Use authFetch instead of fetch
   const fetchMe = useCallback(async () => {
     const token = getToken();
     
     if (!token) {
+      console.log('🔍 [fetchMe] No token, skipping');
       setUser(null);
       setLoading(false);
       return;
     }
 
     try {
-      const res = await fetch(`${API}/api/profile/me`, {
+      console.log('🔍 [fetchMe] Fetching profile with token...');
+      // ✅ Use authFetch here!
+      const res = await authFetch(`${API}/api/profile/me`, {
         method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
       });
+
+      console.log('🔍 [fetchMe] Response status:', res.status);
 
       if (res.status === 403) {
         setUser(null);
@@ -73,23 +76,18 @@ export function AuthProvider({ children }) {
         return;
       }
 
-      if (res.status === 401) {
-        localStorage.removeItem('token');
-        setUser(null);
-        return;
-      }
-
       if (!res.ok) throw new Error('Not logged in');
       
       const data = await res.json();
+      console.log('✅ [fetchMe] User loaded:', data.user?.email);
       setUser(data.user ?? data);
     } catch (error) {
-      console.error('fetchMe error:', error);
+      console.error('❌ [fetchMe] Error:', error);
       setUser(null);
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, [authFetch, router]);
 
   useEffect(() => {
     fetchMe();
@@ -98,6 +96,7 @@ export function AuthProvider({ children }) {
   const refreshUser = useCallback(() => fetchMe(), [fetchMe]);
 
   const login = async (email, password, selectedRole, adminCode) => {
+    console.log('🔐 [login] Attempting login...');
     const res = await fetch(`${API}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -117,8 +116,8 @@ export function AuthProvider({ children }) {
 
     const data = await res.json();
     
-    // ✅ Save token to localStorage
     if (data.token) {
+      console.log('✅ [login] Saving token to localStorage');
       localStorage.setItem('token', data.token);
     }
 
@@ -175,7 +174,7 @@ export function AuthProvider({ children }) {
       logout, 
       loading, 
       refreshUser,
-      authFetch  // ✅ Export authFetch so other components can use it
+      authFetch
     }}>
       {children}
     </AuthContext.Provider>

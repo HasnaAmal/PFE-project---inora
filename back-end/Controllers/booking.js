@@ -339,6 +339,7 @@ export const deleteBooking = async (req, res) => {
 };
 
 // ── GET /api/bookings/all — full history for admin ────
+// ── GET /api/bookings/all — full history for admin ────
 export const getAllBookingsHistory = async (req, res) => {
   try {
     // Vérifier que l'utilisateur est admin
@@ -348,7 +349,7 @@ export const getAllBookingsHistory = async (req, res) => {
     }
 
     const bookings = await prisma.booking.findMany({
-      where: { isDraft: false },
+    
       include: {
         user: {
           select: {

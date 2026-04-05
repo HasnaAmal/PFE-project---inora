@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
@@ -13,10 +13,6 @@ import {
   useElements,
 } from '@stripe/react-stripe-js';
 
-export const dynamic = 'force-dynamic'; 
-export const runtime = 'edge';
-export const fetchCache = 'force-no-store';
-
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 const PRICE_PER_PERSON = 150;
 const ADVANCE_AMOUNT   = 250;
@@ -25,7 +21,7 @@ const CROSSHATCH_SVG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 
 const stripeElementStyle = {
   base: {
-    fontFamily: "Cormorant Garamond, serif",
+    fontFamily: "'Cormorant Garamond', serif",
     fontStyle:  'italic',
     fontSize:   '15px',
     color:      '#3a3027',
@@ -59,6 +55,7 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
   const [paying,   setPaying]   = useState(false);
   const [error,    setError]    = useState(null);
   const [focused,  setFocused]  = useState(null);
+  // 'advance' = pay deposit now, rest on the day | 'full' = pay everything online now
   const [payMode,  setPayMode]  = useState('advance');
 
   const participants = parseInt(booking?.participants) || 1;
@@ -94,6 +91,7 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
+          // ✅ send payMode so backend knows which amount to charge
           body: JSON.stringify({ bookingId, payMode }),
         }
       );
@@ -198,6 +196,7 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
           How would you like to pay?
         </p>
         <div className="grid grid-cols-2 gap-4">
+
           {/* Option A — Advance only */}
           <button
             type="button"
@@ -218,6 +217,7 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
                   : 'none',
             }}
           >
+            {/* selected dot */}
             <div
               className="absolute top-3 right-3 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all duration-200"
               style={{
@@ -231,6 +231,7 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
                 </svg>
               )}
             </div>
+
             <p
               className="font-['Cormorant_Garamond',serif] text-[0.58rem] tracking-[0.22em] uppercase font-semibold mb-1"
               style={{ color: payMode === 'advance' ? '#C87D87' : 'rgba(90,74,58,0.45)' }}
@@ -268,6 +269,7 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
                   : 'none',
             }}
           >
+            {/* selected dot */}
             <div
               className="absolute top-3 right-3 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all duration-200"
               style={{
@@ -281,6 +283,7 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
                 </svg>
               )}
             </div>
+
             <p
               className="font-['Cormorant_Garamond',serif] text-[0.58rem] tracking-[0.22em] uppercase font-semibold mb-1"
               style={{ color: payMode === 'full' ? '#6B7556' : 'rgba(90,74,58,0.45)' }}
@@ -323,6 +326,7 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
           </p>
         </div>
       </div>
+      {/* ════════════════════════════════════ */}
 
       <OrnamentDivider />
 
@@ -550,7 +554,7 @@ function PaymentForm({ booking, bookingId, onSuccess }) {
 // ════════════════════════════════════════
 //  PAGE
 // ════════════════════════════════════════
-function CheckoutContent() {
+export default function CheckoutPage() {
   const { user, loading } = useAuth();
   const searchParams = useSearchParams();
   const router       = useRouter();
@@ -560,7 +564,7 @@ function CheckoutContent() {
   const [fetchLoading, setFetchLoading] = useState(true);
   const [error,        setError]        = useState(null);
   const [paid,         setPaid]         = useState(false);
-  const [paidMode,     setPaidMode]     = useState('advance');
+  const [paidMode,     setPaidMode]     = useState('advance'); // stored for success screen
   const [paidAmount,   setPaidAmount]   = useState(ADVANCE_AMOUNT);
 
   useEffect(() => {
@@ -812,29 +816,5 @@ function CheckoutContent() {
         </Elements>
       </main>
     </div>
-  );
-}
-
-// ════════════════════════════════════════
-//  PAGE WRAPPER (avec Suspense)
-// ════════════════════════════════════════
-export default function CheckoutPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center"
-        style={{ background:'linear-gradient(135deg,#FBEAD6 0%,#f0e0c8 100%)' }}>
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative w-12 h-12">
-            <div className="absolute inset-0 rounded-full border border-[#C87D87]/20"/>
-            <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#C87D87] animate-spin"/>
-          </div>
-          <p className="font-['Cormorant_Garamond',serif] italic text-[#7a6a5a]/50 tracking-[0.35em] text-xs uppercase">
-            Preparing payment…
-          </p>
-        </div>
-      </div>
-    }>
-      <CheckoutContent />
-    </Suspense>
   );
 }

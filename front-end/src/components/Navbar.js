@@ -7,38 +7,32 @@ import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 
 export default function Navbar() {
-  const { user, logout, loading, refreshUser, authFetch } = useAuth();
+  const { user, logout, loading, refreshUser } = useAuth();
   const router = useRouter();
-  const [scrolled, setScrolled] = useState(false);
+  const [scrolled,     setScrolled]     = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   const [notifications, setNotifications] = useState([]);
-  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifOpen,     setNotifOpen]     = useState(false);
   const notifRef = useRef(null);
 
-  const isAdmin = user?.role === 'admin';
-  const displayName = user?.fullName ?? user?.full_name ?? user?.name ?? user?.email ?? '?';
-  const avatarUrl = user?.avatarUrl ?? null;
+  const isAdmin      = user?.role === 'admin';
+  const displayName  = user?.fullName ?? user?.full_name ?? user?.name ?? user?.email ?? '?';
+  const avatarUrl    = user?.avatarUrl ?? null;
   const unreadNotifs = notifications.filter(n => !n.read);
 
-  // ── REST polling using authFetch ──────────────────────────────────────────
+  // ── REST polling ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!user || isAdmin) return;
 
     const fetchNotifications = async () => {
       try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          console.log('No token, skipping notifications fetch');
-          return;
-        }
-        const res = await authFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications`, {
+          credentials: 'include',
+        });
         if (res.ok) {
           setNotifications(await res.json());
-        } else if (res.status === 401) {
-          console.log('Token expired, clearing...');
-          localStorage.removeItem('token');
         } else {
           console.error('[Notif] Fetch failed:', res.status);
         }
@@ -50,7 +44,7 @@ export default function Navbar() {
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
-  }, [user?.id, authFetch, isAdmin]);
+  }, [user?.id]); // depend on user.id not the whole user object
 
   // ── Socket.io — real-time notifications ──────────────────────────────────
   useEffect(() => {
@@ -58,9 +52,10 @@ export default function Navbar() {
 
     const socket = io(process.env.NEXT_PUBLIC_API_URL, {
       withCredentials: true,
-      transports: ['websocket', 'polling'],
+      transports: ['websocket', 'polling'], // try WebSocket first, fall back to polling
     });
 
+    // emit join only AFTER connection is confirmed — fixes silent drop bug
     socket.on('connect', () => {
       console.log('[Socket] ✅ Connected:', socket.id);
       socket.emit('join', user.id);
@@ -80,8 +75,8 @@ export default function Navbar() {
       setNotifications(prev => [
         {
           ...notif,
-          id: notif.id ?? Date.now().toString(),
-          read: false,
+          id:        notif.id ?? Date.now().toString(),
+          read:      false,
           createdAt: notif.createdAt ?? new Date().toISOString(),
         },
         ...prev,
@@ -92,7 +87,7 @@ export default function Navbar() {
       console.log('[Socket] Disconnecting');
       socket.disconnect();
     };
-  }, [user?.id, isAdmin]);
+  }, [user?.id]); // depend on user.id not the whole user object
 
   // ── Scroll handler ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -105,30 +100,22 @@ export default function Navbar() {
   useEffect(() => {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false);
-      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
+      if (notifRef.current  && !notifRef.current.contains(e.target))      setNotifOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
   const handleLogout = async () => {
-    console.log('1. handleLogout called');
-    console.log('2. logout type:', typeof logout);
-    console.log('3. logout value:', logout);
     setDropdownOpen(false);
-    try {
-      console.log('4. calling logout...');
-      await logout();
-      console.log('5. logout completed');
-    } catch (err) {
-      console.error('6. Logout error:', err);
-    }
+    await logout();
+    router.push('/');
   };
 
   const markAsRead = async (id) => {
     try {
-      await authFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${id}/read`, {
-        method: 'PATCH',
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${id}/read`, {
+        method: 'PATCH', credentials: 'include',
       });
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
     } catch (e) {
@@ -138,8 +125,8 @@ export default function Navbar() {
 
   const markAllAsRead = async () => {
     try {
-      await authFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/read-all`, {
-        method: 'PATCH',
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/read-all`, {
+        method: 'PATCH', credentials: 'include',
       });
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     } catch (e) {
@@ -147,23 +134,21 @@ export default function Navbar() {
     }
   };
 
-  const handleCheckout = async (notif) => {
-    await markAsRead(notif.id);
-    setNotifOpen(false);
-    setDropdownOpen(false);
-    setNotifications(prev => prev.filter(n => n.id !== notif.id));
-    router.push(`/checkout?bookingId=${notif.bookingId}`);
-  };
-
-  const handleReview = async (notif) => {
-    await markAsRead(notif.id);
-    setNotifOpen(false);
-    let url = notif.actionUrl || `/reviews/new?bookingId=${notif.bookingId}`;
-    url = url.replace(/^\/review\?/, '/reviews/new?');
-    setNotifications(prev => prev.filter(n => n.id !== notif.id));
-    router.push(url);
-  };
-
+const handleCheckout = async (notif) => {
+  await markAsRead(notif.id);
+  setNotifOpen(false);
+  setDropdownOpen(false);
+  setNotifications(prev => prev.filter(n => n.id !== notif.id)); // ← remove it
+  router.push(`/checkout?bookingId=${notif.bookingId}`);
+};
+const handleReview = async (notif) => {
+  await markAsRead(notif.id);
+  setNotifOpen(false);
+  let url = notif.actionUrl || `/reviews/new?bookingId=${notif.bookingId}`;
+  url = url.replace(/^\/review\?/, '/reviews/new?');
+  setNotifications(prev => prev.filter(n => n.id !== notif.id)); // ← remove it
+  router.push(url);
+};
   if (loading) return null;
 
   const Avatar = ({ size = 8, textSize = 'text-sm' }) =>
@@ -202,6 +187,77 @@ export default function Navbar() {
           : 'bg-[#6B7556]/90 backdrop-blur-sm border-b border-[#C87D87]/10 py-4'
       }`}>
 
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#C87D87]/60 to-transparent pointer-events-none"/>
+        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#C87D87]/40 to-transparent pointer-events-none"/>
+
+        {[
+          { pos:'top-0 left-0',     rot:'rotate-0'   },
+          { pos:'top-0 right-0',    rot:'rotate-90'  },
+          { pos:'bottom-0 right-0', rot:'rotate-180' },
+          { pos:'bottom-0 left-0',  rot:'-rotate-90' },
+        ].map(({ pos, rot }, i) => (
+          <div key={i} className={`absolute ${pos} w-10 h-10 pointer-events-none overflow-hidden`}>
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" className={rot}>
+              <line x1="0"  y1="1"  x2="20" y2="1"  stroke="#C87D87" strokeWidth="0.9"  strokeOpacity="0.55"/>
+              <line x1="1"  y1="0"  x2="1"  y2="20" stroke="#C87D87" strokeWidth="0.9"  strokeOpacity="0.55"/>
+              <line x1="4"  y1="6"  x2="15" y2="6"  stroke="#C87D87" strokeWidth="0.55" strokeOpacity="0.38"/>
+              <line x1="6"  y1="4"  x2="6"  y2="15" stroke="#C87D87" strokeWidth="0.55" strokeOpacity="0.38"/>
+              <rect x="2.5" y="2.5" width="6" height="6" transform="rotate(45 5.5 5.5)"
+                fill="none" stroke="#C87D87" strokeWidth="0.7" strokeOpacity="0.85"/>
+              <circle cx="5.5" cy="5.5" r="0.9" fill="#C87D87" fillOpacity="0.45"/>
+              <rect x="11" y="2" width="3.5" height="3.5" transform="rotate(45 12.75 3.75)"
+                fill="none" stroke="#C87D87" strokeWidth="0.45" strokeOpacity="0.35"/>
+              <rect x="2" y="11" width="3.5" height="3.5" transform="rotate(45 3.75 12.75)"
+                fill="none" stroke="#C87D87" strokeWidth="0.45" strokeOpacity="0.35"/>
+              <circle cx="10" cy="6"  r="0.8" fill="#C87D87" fillOpacity="0.22"/>
+              <circle cx="14" cy="6"  r="0.6" fill="#C87D87" fillOpacity="0.16"/>
+              <circle cx="6"  cy="10" r="0.8" fill="#C87D87" fillOpacity="0.22"/>
+              <circle cx="6"  cy="14" r="0.6" fill="#C87D87" fillOpacity="0.16"/>
+              {[8,12,16].map((x,j) => (
+                <line key={j} x1={x} y1="1" x2={x} y2={j%2===0?4:3} stroke="#C87D87" strokeWidth="0.45" strokeOpacity="0.28"/>
+              ))}
+              {[8,12,16].map((y,j) => (
+                <line key={j} x1="1" y1={y} x2={j%2===0?4:3} y2={y} stroke="#C87D87" strokeWidth="0.45" strokeOpacity="0.28"/>
+              ))}
+              {[7,10,13,16].map((x,j) => (
+                <circle key={j} cx={x} cy="3.5" r="0.4" fill="#C87D87" fillOpacity={0.08+j*0.03}/>
+              ))}
+              {[7,10,13,16].map((y,j) => (
+                <circle key={j} cx="3.5" cy={y} r="0.4" fill="#C87D87" fillOpacity={0.08+j*0.03}/>
+              ))}
+            </svg>
+          </div>
+        ))}
+
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 flex items-center pointer-events-none">
+          <div className="w-10 h-px bg-gradient-to-r from-transparent to-[#C87D87]/30"/>
+          <svg width="20" height="12" viewBox="0 0 20 12" fill="none">
+            <g transform="translate(10 6)">
+              <line x1="-4" y1="0" x2="4" y2="0" stroke="#C87D87" strokeWidth="0.6" strokeOpacity="0.5"/>
+              <line x1="0" y1="-4" x2="0" y2="4" stroke="#C87D87" strokeWidth="0.6" strokeOpacity="0.5"/>
+              <line x1="-2.8" y1="-2.8" x2="2.8" y2="2.8" stroke="#C87D87" strokeWidth="0.4" strokeOpacity="0.35"/>
+              <line x1="2.8" y1="-2.8" x2="-2.8" y2="2.8" stroke="#C87D87" strokeWidth="0.4" strokeOpacity="0.35"/>
+              <circle cx="0" cy="0" r="1" fill="#C87D87" fillOpacity="0.5"/>
+            </g>
+          </svg>
+          <div className="w-10 h-px bg-gradient-to-l from-transparent to-[#C87D87]/30"/>
+        </div>
+
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-center pointer-events-none">
+          <div className="w-10 h-px bg-gradient-to-r from-transparent to-[#C87D87]/25"/>
+          <svg width="20" height="12" viewBox="0 0 20 12" fill="none">
+            <g transform="translate(10 6)">
+              <line x1="-4" y1="0" x2="4" y2="0" stroke="#C87D87" strokeWidth="0.5" strokeOpacity="0.4"/>
+              <line x1="0" y1="-4" x2="0" y2="4" stroke="#C87D87" strokeWidth="0.5" strokeOpacity="0.4"/>
+              <line x1="-2.8" y1="-2.8" x2="2.8" y2="2.8" stroke="#C87D87" strokeWidth="0.35" strokeOpacity="0.28"/>
+              <line x1="2.8" y1="-2.8" x2="-2.8" y2="2.8" stroke="#C87D87" strokeWidth="0.35" strokeOpacity="0.28"/>
+              <circle cx="0" cy="0" r="0.9" fill="#C87D87" fillOpacity="0.4"/>
+            </g>
+          </svg>
+          <div className="w-10 h-px bg-gradient-to-l from-transparent to-[#C87D87]/25"/>
+        </div>
+
+        {/* ── NAV CONTENT ── */}
         <div className="max-w-7xl mx-auto flex justify-between items-center px-10">
 
           {/* LOGO */}
@@ -261,8 +317,8 @@ export default function Navbar() {
                     )}
                   </button>
 
-                  {/* NOTIFICATION DROPDOWN */}
- {notifOpen && (
+                  {/* ── NOTIFICATION DROPDOWN ── */}
+                  {notifOpen && (
                     <div className="dropdown-anim absolute right-0 mt-2.5 w-[22rem] z-[100] rounded-2xl overflow-hidden border border-[#C87D87]/20 shadow-[0_16px_48px_rgba(58,48,39,0.18)]"
                       style={{ background:'#FBEAD6' }}>
 

@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-/* ─── lace SVG background ────────────────────────────────────── */
 function LaceSVG() {
   return (
     <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
@@ -13,12 +12,9 @@ function LaceSVG() {
       {Array.from({length:29}).map((_,row)=>Array.from({length:48}).map((_,col)=>{const x1=col*32+(row%2===0?0:16),y1=row*32,x2=x1+(row%2===0?16:-16),y2=y1+32;return <line key={`dl-${row}-${col}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#FBEAD6" strokeWidth="0.35" strokeOpacity="0.18"/>}))}
       {[
         {cx:120,cy:120},{cx:360,cy:80},{cx:720,cy:50},{cx:1080,cy:80},{cx:1320,cy:120},
-        {cx:60,cy:450},{cx:1380,cy:450},
-        {cx:200,cy:790},{cx:720,cy:840},{cx:1240,cy:790},
-        {cx:480,cy:185},{cx:960,cy:185},
-        {cx:480,cy:695},{cx:960,cy:695},
-        {cx:240,cy:340},{cx:1200,cy:340},
-        {cx:240,cy:580},{cx:1200,cy:580},
+        {cx:60,cy:450},{cx:1380,cy:450},{cx:200,cy:790},{cx:720,cy:840},{cx:1240,cy:790},
+        {cx:480,cy:185},{cx:960,cy:185},{cx:480,cy:695},{cx:960,cy:695},
+        {cx:240,cy:340},{cx:1200,cy:340},{cx:240,cy:580},{cx:1200,cy:580},
       ].map(({cx,cy},i)=>(
         <g key={`m-${i}`} transform={`translate(${cx},${cy})`} style={{animation:`lacePulse ${3.5+(i%3)*0.8}s ease-in-out infinite ${i*0.25}s`}}>
           <circle r="28" fill="none" stroke="#FBEAD6" strokeWidth="0.7" strokeOpacity="0.35" strokeDasharray="3 5"/>
@@ -43,10 +39,8 @@ function LaceSVG() {
       <rect x="18" y="18" width="1404" height="864" rx="4" fill="none" stroke="#FBEAD6" strokeWidth="0.6" strokeOpacity="0.18" strokeDasharray="6 10"/>
       <rect x="10" y="10" width="1420" height="880" rx="6" fill="none" stroke="#FBEAD6" strokeWidth="0.4" strokeOpacity="0.12" strokeDasharray="2 8"/>
       {[
-        {cx:330,cy:200},{cx:1110,cy:200},{cx:720,cy:140},
-        {cx:200,cy:490},{cx:1240,cy:490},
-        {cx:330,cy:700},{cx:1110,cy:700},{cx:720,cy:760},
-        {cx:560,cy:330},{cx:880,cy:330},
+        {cx:330,cy:200},{cx:1110,cy:200},{cx:720,cy:140},{cx:200,cy:490},{cx:1240,cy:490},
+        {cx:330,cy:700},{cx:1110,cy:700},{cx:720,cy:760},{cx:560,cy:330},{cx:880,cy:330},
         {cx:560,cy:580},{cx:880,cy:580},
       ].map(({cx,cy},i)=>(
         <g key={`ld-${i}`} transform={`translate(${cx},${cy})`} style={{animation:`lacePulse ${4+i*0.2}s ease-in-out infinite ${i*0.4}s`}}>
@@ -59,7 +53,6 @@ function LaceSVG() {
   );
 }
 
-/* ─── ornament divider ───────────────────────────────────────── */
 function OrnamDivider() {
   return (
     <div className="flex items-center justify-center gap-2 mb-2">
@@ -78,11 +71,10 @@ function OrnamDivider() {
   );
 }
 
-/* ─── shared background wrapper — NO TypeScript types ────────── */
 function Background({ children }) {
   return (
     <div
-      className="min-h-screen w-full flex items-center justify-center relative overflow-hidden"
+      className="min-h-screen w-full flex items-center justify-center relative overflow-hidden px-4"
       style={{ background: 'linear-gradient(150deg,#4e5a3c 0%,#6B7556 45%,#5a6347 80%,#4a5535 100%)' }}
     >
       <style>{`
@@ -97,59 +89,53 @@ function Background({ children }) {
           -webkit-text-fill-color:#3a3027;
         }
       `}</style>
-
-      {/* noise */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{ backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`, backgroundSize:'200px' }} />
-
-      {/* orbs */}
-      <div className="absolute top-10 left-10 w-64 h-64 rounded-full pointer-events-none"
+      <div className="hidden sm:block absolute top-10 left-10 w-64 h-64 rounded-full pointer-events-none"
         style={{ background:'radial-gradient(circle,rgba(251,234,214,0.10) 0%,transparent 70%)', animation:'floatOrb 10s ease-in-out infinite', filter:'blur(18px)' }} />
-      <div className="absolute bottom-10 right-10 w-72 h-72 rounded-full pointer-events-none"
+      <div className="hidden sm:block absolute bottom-10 right-10 w-72 h-72 rounded-full pointer-events-none"
         style={{ background:'radial-gradient(circle,rgba(200,125,135,0.12) 0%,transparent 70%)', animation:'floatOrb 13s ease-in-out infinite 2s', filter:'blur(22px)' }} />
-
       <LaceSVG />
       {children}
     </div>
   );
 }
 
-/* ─── invalid token screen ──────────────────────────────────── */
 function InvalidToken() {
   return (
     <Background>
-      <div className="relative z-10" style={{ animation:'formIn 0.9s cubic-bezier(.4,0,.2,1) forwards 0.2s', opacity:0 }}>
-        <div className="relative w-[370px] bg-[#FBEAD6]/92 backdrop-blur-xl border border-[#FBEAD6]/25 rounded-2xl px-7 py-8 shadow-[0_32px_90px_rgba(10,18,6,0.55)] text-center">
+      <div className="relative z-10 w-full flex justify-center" style={{ animation:'formIn 0.9s cubic-bezier(.4,0,.2,1) forwards 0.2s', opacity:0 }}>
+        <div className="relative w-full max-w-[370px] bg-[#FBEAD6]/92 backdrop-blur-xl border border-[#FBEAD6]/25 rounded-2xl px-4 py-4 sm:px-7 sm:py-8 shadow-[0_32px_90px_rgba(10,18,6,0.55)] text-center">
           <div className="absolute inset-0 rounded-2xl border border-[#C87D87]/12 pointer-events-none"/>
           <div className="absolute inset-[5px] rounded-xl border border-[#C87D87]/8 pointer-events-none"/>
 
-          <div className="mx-auto mb-5 w-16 h-16 rounded-full flex items-center justify-center"
+          <div className="mx-auto mb-3 sm:mb-5 w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center"
             style={{ background:'rgba(200,125,135,0.09)', border:'1px solid rgba(200,125,135,0.22)' }}>
-            <svg className="w-7 h-7 text-[#C87D87]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <svg className="w-5 h-5 sm:w-7 sm:h-7 text-[#C87D87]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
             </svg>
           </div>
 
           <Link href="/"
-            className="font-['Playfair_Display',serif] italic text-xl text-[#C87D87] tracking-widest block mb-3 hover:text-[#a85e6a] transition-colors duration-300">
+            className="font-['Playfair_Display',serif] italic text-xl sm:text-2xl text-[#C87D87] tracking-widest block mb-2 hover:text-[#a85e6a] transition-colors duration-300">
             Inora
           </Link>
           <OrnamDivider />
           <p className="font-['Cormorant_Garamond',serif] italic text-[0.6rem] tracking-[0.32em] uppercase text-[#C87D87]/55 mb-1">Invalid Link</p>
-          <h2 className="font-['Playfair_Display',serif] italic text-2xl text-[#5a6347] leading-tight mb-2">Link Expired</h2>
-          <p className="font-['Cormorant_Garamond',serif] italic text-sm text-[#7a6a5a]/65 mb-6 leading-snug">
+          <h2 className="font-['Playfair_Display',serif] italic text-xl sm:text-2xl text-[#5a6347] leading-tight mb-1.5">Link Expired</h2>
+          <p className="font-['Cormorant_Garamond',serif] italic text-xs sm:text-sm text-[#7a6a5a]/65 mb-4 leading-snug">
             This reset link is invalid or has expired.<br/>Request a new one from the forgot password page.
           </p>
 
           <Link href="/forgot-password"
-            className="block w-full font-['Cormorant_Garamond',serif] text-sm tracking-[0.28em] uppercase text-white py-2.5 rounded-xl transition-all duration-300 mb-3 relative overflow-hidden group bg-[#6B7556] hover:bg-[#5a6347]">
+            className="block w-full font-['Cormorant_Garamond',serif] text-sm tracking-[0.28em] uppercase text-white py-3 sm:py-2.5 rounded-xl transition-all duration-300 mb-2.5 relative overflow-hidden group bg-[#6B7556] hover:bg-[#5a6347] min-h-[44px] flex items-center justify-center">
             <span className="relative z-10 flex items-center justify-center gap-2">
               <span className="opacity-50 text-[0.5rem]">◆</span>Request New Link<span className="opacity-50 text-[0.5rem]">◆</span>
             </span>
             <div className="absolute inset-0 bg-white/0 group-hover:bg-white/8 transition-colors duration-300 rounded-xl"/>
           </Link>
 
-          <div className="flex items-center gap-3 my-3"><div className="flex-1 h-px bg-[#C87D87]/12"/></div>
+          <div className="flex items-center gap-3 my-2.5"><div className="flex-1 h-px bg-[#C87D87]/12"/></div>
           <p className="font-['Cormorant_Garamond',serif] italic text-sm text-[#5a4a3a]/70 text-center">
             <Link href="/login" className="text-[#C87D87] hover:text-[#6B7556] transition-colors duration-300 border-b border-[#C87D87]/25 pb-px">
               Back to Sign In
@@ -161,16 +147,15 @@ function InvalidToken() {
   );
 }
 
-/* ─── success screen ────────────────────────────────────────── */
 function SuccessScreen() {
   return (
     <Background>
-      <div className="relative z-10" style={{ animation:'formIn 0.6s cubic-bezier(.4,0,.2,1) forwards', opacity:0 }}>
-        <div className="relative w-[370px] bg-[#FBEAD6]/92 backdrop-blur-xl border border-[#FBEAD6]/25 rounded-2xl px-7 py-8 shadow-[0_32px_90px_rgba(10,18,6,0.55)] text-center">
+      <div className="relative z-10 w-full flex justify-center" style={{ animation:'formIn 0.6s cubic-bezier(.4,0,.2,1) forwards', opacity:0 }}>
+        <div className="relative w-full max-w-[370px] bg-[#FBEAD6]/92 backdrop-blur-xl border border-[#FBEAD6]/25 rounded-2xl px-4 py-4 sm:px-7 sm:py-8 shadow-[0_32px_90px_rgba(10,18,6,0.55)] text-center">
           <div className="absolute inset-0 rounded-2xl border border-[#C87D87]/12 pointer-events-none"/>
           <div className="absolute inset-[5px] rounded-xl border border-[#C87D87]/8 pointer-events-none"/>
 
-          <div className="mx-auto mb-5 w-20 h-20" style={{ animation:'ringPop .6s cubic-bezier(.34,1.56,.64,1) forwards' }}>
+          <div className="mx-auto mb-3 sm:mb-5 w-16 h-16 sm:w-20 sm:h-20" style={{ animation:'ringPop .6s cubic-bezier(.34,1.56,.64,1) forwards' }}>
             <svg viewBox="0 0 80 80" className="w-full h-full">
               <circle cx="40" cy="40" r="36" fill="rgba(107,117,86,0.07)" stroke="rgba(107,117,86,0.22)" strokeWidth="1.2"/>
               <path d="M24 40 L35 51 L56 29" fill="none" stroke="#6B7556" strokeWidth="2.5"
@@ -181,24 +166,24 @@ function SuccessScreen() {
           </div>
 
           <Link href="/"
-            className="font-['Playfair_Display',serif] italic text-xl text-[#C87D87] tracking-widest block mb-3 hover:text-[#a85e6a] transition-colors duration-300">
+            className="font-['Playfair_Display',serif] italic text-xl sm:text-2xl text-[#C87D87] tracking-widest block mb-2 hover:text-[#a85e6a] transition-colors duration-300">
             Inora
           </Link>
           <OrnamDivider />
 
           <p className="font-['Cormorant_Garamond',serif] italic text-[0.6rem] tracking-[0.32em] uppercase text-[#C87D87]/55 mb-1" style={{ animation:'fadeInUp .4s ease .5s both' }}>All Done</p>
-          <h2 className="font-['Playfair_Display',serif] italic text-2xl text-[#5a6347] leading-tight mb-2" style={{ animation:'fadeInUp .4s ease .55s both' }}>
+          <h2 className="font-['Playfair_Display',serif] italic text-xl sm:text-2xl text-[#5a6347] leading-tight mb-1.5" style={{ animation:'fadeInUp .4s ease .55s both' }}>
             Password Updated<span className="text-[#C87D87]">·</span>
           </h2>
-          <p className="font-['Cormorant_Garamond',serif] italic text-sm text-[#7a6a5a]/65 mb-1 leading-snug" style={{ animation:'fadeInUp .4s ease .6s both' }}>
+          <p className="font-['Cormorant_Garamond',serif] italic text-xs sm:text-sm text-[#7a6a5a]/65 mb-1 leading-snug" style={{ animation:'fadeInUp .4s ease .6s both' }}>
             Your password has been reset successfully.
           </p>
-          <p className="font-['Cormorant_Garamond',serif] italic text-xs text-[#7a6a5a]/40 mb-6" style={{ animation:'fadeInUp .4s ease .65s both' }}>
+          <p className="font-['Cormorant_Garamond',serif] italic text-xs text-[#7a6a5a]/40 mb-4" style={{ animation:'fadeInUp .4s ease .65s both' }}>
             Redirecting you to sign in…
           </p>
 
           <Link href="/login"
-            className="block w-full font-['Cormorant_Garamond',serif] text-sm tracking-[0.28em] uppercase text-white py-2.5 rounded-xl transition-all duration-300 relative overflow-hidden group bg-[#6B7556] hover:bg-[#5a6347]"
+            className="block w-full font-['Cormorant_Garamond',serif] text-sm tracking-[0.28em] uppercase text-white py-3 sm:py-2.5 rounded-xl transition-all duration-300 relative overflow-hidden group bg-[#6B7556] hover:bg-[#5a6347] min-h-[44px] flex items-center justify-center"
             style={{ animation:'fadeInUp .4s ease .7s both' }}>
             <span className="relative z-10 flex items-center justify-center gap-2">
               <span className="opacity-50 text-[0.5rem]">◆</span>Sign In Now<span className="opacity-50 text-[0.5rem]">◆</span>
@@ -211,7 +196,6 @@ function SuccessScreen() {
   );
 }
 
-/* ─── main form ─────────────────────────────────────────────── */
 export default function ResetPasswordForm() {
   const searchParams   = useSearchParams();
   const router         = useRouter();
@@ -242,7 +226,6 @@ export default function ResetPasswordForm() {
     e.preventDefault();
     setError('');
     if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
-
     setLoading(true);
     try {
       const res  = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/reset-password`, {
@@ -264,34 +247,34 @@ export default function ResetPasswordForm() {
 
   return (
     <Background>
-      <div className="relative z-10" style={{ animation:'formIn 0.9s cubic-bezier(.4,0,.2,1) forwards 0.2s', opacity:0 }}>
+      <div className="relative z-10 w-full flex justify-center" style={{ animation:'formIn 0.9s cubic-bezier(.4,0,.2,1) forwards 0.2s', opacity:0 }}>
         <form onSubmit={handleSubmit}
-          className="relative w-[370px] bg-[#FBEAD6]/92 backdrop-blur-xl border border-[#FBEAD6]/25 rounded-2xl px-7 py-6 shadow-[0_32px_90px_rgba(10,18,6,0.55)]">
+          className="relative w-full max-w-[370px] bg-[#FBEAD6]/92 backdrop-blur-xl border border-[#FBEAD6]/25 rounded-2xl px-4 py-4 sm:px-7 sm:py-6 shadow-[0_32px_90px_rgba(10,18,6,0.55)]">
 
           <div className="absolute inset-0 rounded-2xl border border-[#C87D87]/12 pointer-events-none"/>
           <div className="absolute inset-[5px] rounded-xl border border-[#C87D87]/8 pointer-events-none"/>
 
           {/* header */}
-          <div className="text-center mb-5">
+          <div className="text-center mb-3.5 sm:mb-5">
             <Link href="/"
-              className="font-['Playfair_Display',serif] italic text-2xl text-[#C87D87] tracking-widest block mb-2 hover:text-[#a85e6a] transition-colors duration-300">
+              className="font-['Playfair_Display',serif] italic text-xl sm:text-2xl text-[#C87D87] tracking-widest block mb-2 hover:text-[#a85e6a] transition-colors duration-300">
               Inora
             </Link>
             <OrnamDivider />
             <p className="font-['Cormorant_Garamond',serif] italic text-[0.6rem] tracking-[0.32em] uppercase text-[#C87D87]/55 mb-1">
               Account Recovery
             </p>
-            <h2 className="font-['Playfair_Display',serif] italic text-2xl text-[#5a6347] leading-tight">
+            <h2 className="font-['Playfair_Display',serif] italic text-xl sm:text-2xl text-[#5a6347] leading-tight">
               New Password
             </h2>
-            <p className="font-['Cormorant_Garamond',serif] italic text-sm text-[#7a6a5a]/65 mt-2 leading-snug">
+            <p className="font-['Cormorant_Garamond',serif] italic text-xs sm:text-sm text-[#7a6a5a]/65 mt-1.5 sm:mt-2 leading-snug">
               Choose a strong password to protect your account.
             </p>
           </div>
 
           {/* error banner */}
           {error && (
-            <div className="mb-4 flex items-start gap-2 border border-[#C87D87]/35 bg-[#C87D87]/8 px-3 py-2.5 rounded-lg"
+            <div className="mb-3 flex items-start gap-2 border border-[#C87D87]/35 bg-[#C87D87]/8 px-3 py-2 rounded-lg"
               style={{ animation:'fadeInUp 0.3s ease forwards' }}>
               <span className="text-[#C87D87] text-xs flex-shrink-0 mt-0.5">◆</span>
               <p className="font-['Cormorant_Garamond',serif] italic text-sm text-[#C87D87]">{error}</p>
@@ -310,10 +293,10 @@ export default function ResetPasswordForm() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
-                className="w-full px-3.5 py-2 pr-10 bg-white/55 border border-[#C87D87]/18 focus:border-[#C87D87]/50 focus:bg-white/70 focus:outline-none rounded-lg font-['Cormorant_Garamond',serif] italic text-sm text-[#3a3027] placeholder:text-[#7a6a5a]/35 transition-all duration-300 group-hover:border-[#C87D87]/28"
+                className="w-full px-3.5 py-2.5 sm:py-2 pr-10 bg-white/55 border border-[#C87D87]/18 focus:border-[#C87D87]/50 focus:bg-white/70 focus:outline-none rounded-lg font-['Cormorant_Garamond',serif] italic text-base sm:text-sm text-[#3a3027] placeholder:text-[#7a6a5a]/35 transition-all duration-300 group-hover:border-[#C87D87]/28"
               />
               <button type="button" onClick={() => setShowPw(v => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#C87D87]/50 hover:text-[#C87D87] transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#C87D87]/50 hover:text-[#C87D87] transition-colors w-8 h-8 flex items-center justify-center"
                 aria-label={showPw ? 'Hide password' : 'Show password'}>
                 {showPw ? (
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -332,7 +315,7 @@ export default function ResetPasswordForm() {
 
           {/* strength bar */}
           {password.length > 0 && (
-            <div className="mb-4" style={{ animation:'fadeInUp 0.25s ease forwards' }}>
+            <div className="mb-3" style={{ animation:'fadeInUp 0.25s ease forwards' }}>
               <div className="h-1 w-full bg-[#3a3027]/8 rounded-full overflow-hidden mb-1">
                 <div className="h-full rounded-full transition-all duration-500"
                   style={{ width:`${strengthWidth}%`, background: strengthColor }}/>
@@ -343,13 +326,13 @@ export default function ResetPasswordForm() {
           )}
 
           {/* hint */}
-          <p className="font-['Cormorant_Garamond',serif] italic text-[0.65rem] text-[#7a6a5a]/40 mb-4">
+          <p className="font-['Cormorant_Garamond',serif] italic text-[0.65rem] text-[#7a6a5a]/40 mb-3">
             Minimum 6 characters — use a mix of letters, numbers &amp; symbols for a stronger password.
           </p>
 
           {/* submit */}
           <button type="submit" disabled={loading || password.length < 6}
-            className="w-full mt-1 relative overflow-hidden font-['Cormorant_Garamond',serif] text-sm tracking-[0.28em] uppercase text-white border-0 py-2.5 rounded-xl transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed group bg-[#6B7556] hover:bg-[#5a6347]">
+            className="w-full mt-1 relative overflow-hidden font-['Cormorant_Garamond',serif] text-sm tracking-[0.28em] uppercase text-white border-0 py-3 sm:py-2.5 rounded-xl transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed group bg-[#6B7556] hover:bg-[#5a6347] min-h-[44px]">
             <span className="relative z-10 flex items-center justify-center gap-2">
               <span className="opacity-50 text-[0.5rem]">◆</span>
               {loading ? '— Updating —' : 'Set New Password'}
@@ -359,7 +342,7 @@ export default function ResetPasswordForm() {
           </button>
 
           {/* footer */}
-          <div className="flex items-center gap-3 mt-4 mb-3">
+          <div className="flex items-center gap-3 mt-3 mb-2">
             <div className="flex-1 h-px bg-[#C87D87]/12"/>
           </div>
           <p className="font-['Cormorant_Garamond',serif] italic text-sm text-[#5a4a3a]/70 text-center">

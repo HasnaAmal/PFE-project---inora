@@ -1,6 +1,4 @@
 'use client';
-
-import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -21,43 +19,17 @@ function getPricing(participants) {
   return { rate: 100, label: 'large group rate' };
 }
 
-function BookingConfirmedContent() {
+export default function BookingConfirmed() {
   const searchParams = useSearchParams();
   const bookingId    = searchParams.get('bookingId');
   const [booking, setBooking] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!bookingId) {
-      setLoading(false);
-      return;
-    }
-    
-    // ✅ Jib token mn localStorage
-    const token = localStorage.getItem('token');
-    
-    fetch(`${API}/api/bookings/${bookingId}`, {
-      credentials: 'include',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    })
-      .then(r => {
-        if (r.status === 401) {
-          // Token expired, redirect l login
-          window.location.href = '/login?expired=true';
-          return null;
-        }
-        return r.ok ? r.json() : null;
-      })
-      .then(d => {
-        setBooking(d);
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
-      });
+    if (!bookingId) return;
+    fetch(`${API}/api/bookings/${bookingId}`, { credentials: 'include' })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => setBooking(d))
+      .catch(() => {});
   }, [bookingId]);
 
   const pricing  = booking ? getPricing(booking.participants ?? 1) : null;
@@ -65,23 +37,6 @@ function BookingConfirmedContent() {
   const savedAmt = booking && pricing?.label
     ? (booking.participants ?? 1) * (150 - pricing.rate)
     : 0;
-
-  // Ila loading o ma3ndekch booking, tban loading spinner
-  if (loading && !booking) {
-    return (
-      <div className="min-h-screen bg-[#FBEAD6] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative w-10 h-10">
-            <div className="absolute inset-0 rounded-full border border-[#C87D87]/20"/>
-            <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#C87D87] animate-spin"/>
-          </div>
-          <p className="font-['Cormorant_Garamond',serif] italic text-[#7a6a5a]/50 tracking-[0.35em] text-xs uppercase">
-            Loading your booking...
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen relative overflow-x-hidden"
@@ -150,7 +105,7 @@ function BookingConfirmedContent() {
             <div className="text-left sm:text-right fade-up flex-shrink-0">
               <p className="font-['Cormorant_Garamond',serif] text-[0.65rem] sm:text-[0.72rem] uppercase tracking-[0.2em]
                 font-semibold mb-1" style={{ color: 'rgba(90,74,58,0.70)' }}>Reference</p>
-              <p className="font-['Playfair_Display',serif] italic text-[1.8rem] text-[#3a3027]">
+              <p className="font-['Playfair_Display',serif] italic text-[1.4rem] sm:text-[1.8rem] text-[#3a3027]">
                 #{String(booking.id).padStart(5,'0')}
               </p>
               <span className="inline-block mt-1 font-['Cormorant_Garamond',serif] italic
@@ -301,25 +256,5 @@ function BookingConfirmedContent() {
         </div>
       </main>
     </div>
-  );
-}
-
-export default function BookingConfirmedPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#FBEAD6] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative w-10 h-10">
-            <div className="absolute inset-0 rounded-full border border-[#C87D87]/20"/>
-            <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#C87D87] animate-spin"/>
-          </div>
-          <p className="font-['Cormorant_Garamond',serif] italic text-[#7a6a5a]/50 tracking-[0.35em] text-xs uppercase">
-            Loading...
-          </p>
-        </div>
-      </div>
-    }>
-      <BookingConfirmedContent />
-    </Suspense>
   );
 }

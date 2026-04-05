@@ -2,19 +2,22 @@
 import nodemailer from 'nodemailer';
 import dns from 'dns';
 
-// Force IPv4 globally (optional)
+// Force IPv4 globally
 dns.setDefaultResultOrder('ipv4first');
 
 export const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT),
-  secure: process.env.SMTP_SECURE === 'true',
-  family: 4,  // ← HADI LMO7IMA
+  secure: process.env.SMTP_SECURE === 'true',  // hadi ghadi tkon false daba
+  family: 4,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
   },
-  connectionTimeout: 20000
+  connectionTimeout: 20000,
+  tls: {
+    rejectUnauthorized: false  // Temporaire pour test
+  }
 });
 
 export const testMailer = async () => {
@@ -23,7 +26,7 @@ export const testMailer = async () => {
       from: `"Inora" <${process.env.EMAIL_USER}>`,
       to: process.env.EMAIL_USER,
       subject: 'Test email',
-      text: 'This is a test email from Nodemailer'
+      text: 'Test from Railway'
     });
     console.log('✅ Test email sent');
   } catch (error) {

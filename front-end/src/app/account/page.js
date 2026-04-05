@@ -130,7 +130,7 @@ function LoadingScreen() {
 }
 
 export default function AccountPage() {
-  const { user, setUser } = useAuth()
+  const { user, setUser, authFetch } = useAuth()
   const router = useRouter()
   const [activeSection, setActiveSection] = useState('personal')
   const [collapsed, setCollapsed] = useState(false)
@@ -160,7 +160,7 @@ export default function AccountPage() {
   const [cancellingId, setCancellingId] = useState(null)
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me`, { credentials: 'include' })
+    authFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me`)
       .then(res => { if (!res.ok) throw new Error('Failed to load profile'); return res.json() })
       .then(data => {
         setProfile(data)
@@ -169,18 +169,18 @@ export default function AccountPage() {
       })
       .catch(err => setError(err.message))
       .finally(() => setLoading(false))
-  }, [])
+  }, [authFetch])
 
   useEffect(() => {
     if (activeSection !== 'bookings') return
     setBookingsLoading(true)
     setBookingsError(null)
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/bookings/my`, { credentials: 'include' })
+    authFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/bookings/my`)
       .then(res => { if (!res.ok) throw new Error('Failed to load bookings'); return res.json() })
       .then(data => setBookings(Array.isArray(data) ? data : []))
       .catch(err => setBookingsError(err.message))
       .finally(() => setBookingsLoading(false))
-  }, [activeSection])
+  }, [activeSection, authFetch])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -196,7 +196,7 @@ export default function AccountPage() {
     const formData = new FormData()
     formData.append('avatar', file)
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me/avatar`, { method: 'PATCH', credentials: 'include', body: formData })
+      const res = await authFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me/avatar`, { method: 'PATCH', body: formData })
       const data = await res.json()
       if (!res.ok) { setAvatarMsg({ type: 'error', text: data.message }); return }
       setProfile(prev => ({ ...prev, avatarUrl: data.avatarUrl }))
@@ -209,7 +209,7 @@ export default function AccountPage() {
   const handleName = async (e) => {
     e.preventDefault(); setNameLoading(true)
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me/name`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(nameForm) })
+      const res = await authFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me/name`, { method: 'PATCH', body: JSON.stringify(nameForm) })
       const data = await res.json()
       if (!res.ok) { setNameMsg({ type: 'error', text: data.message }); return }
       setProfile(prev => ({ ...prev, fullName: data.fullName }))
@@ -222,7 +222,7 @@ export default function AccountPage() {
   const handleEmail = async (e) => {
     e.preventDefault(); setEmailLoading(true)
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me/email`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(emailForm) })
+      const res = await authFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me/email`, { method: 'PATCH', body: JSON.stringify(emailForm) })
       const data = await res.json()
       if (!res.ok) { setEmailMsg({ type: 'error', text: data.message }); return }
       setProfile(prev => ({ ...prev, email: data.email }))
@@ -238,7 +238,7 @@ export default function AccountPage() {
     if (passForm.newPassword !== passForm.confirmPassword) { setPassMsg({ type: 'error', text: 'Passwords do not match' }); return }
     setPassLoading(true)
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me/password`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(passForm) })
+      const res = await authFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me/password`, { method: 'PATCH', body: JSON.stringify(passForm) })
       const data = await res.json()
       if (!res.ok) { setPassMsg({ type: 'error', text: data.message }); return }
       setPassMsg({ type: 'success', text: 'Password updated successfully' })
@@ -250,7 +250,7 @@ export default function AccountPage() {
   const handleDelete = async (e) => {
     e.preventDefault(); setDeleteLoading(true)
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me/verify-password`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ password: deleteForm.password }) })
+      const res = await authFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me/verify-password`, { method: 'POST', body: JSON.stringify({ password: deleteForm.password }) })
       const data = await res.json()
       if (!res.ok) { setDeleteMsg({ type: 'error', text: data.message }); return }
       setShowDeleteModal(true)
@@ -260,7 +260,7 @@ export default function AccountPage() {
   const confirmDelete = async () => {
     setShowDeleteModal(false); setDeleteLoading(true)
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ password: deleteForm.password }) })
+      const res = await authFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me`, { method: 'DELETE', body: JSON.stringify({ password: deleteForm.password }) })
       const data = await res.json()
       if (!res.ok) { setDeleteMsg({ type: 'error', text: data.message }); return }
       setUser(null); router.push('/')
@@ -268,7 +268,7 @@ export default function AccountPage() {
   }
 
   const handleLogout = async () => {
-    try { await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' }) } catch {}
+    try { await authFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, { method: 'POST' }) } catch {}
     setUser(null); router.push('/')
   }
 
@@ -276,7 +276,7 @@ export default function AccountPage() {
     if (!cancelTarget) return
     setCancellingId(cancelTarget.id); setCancelTarget(null)
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me/bookings/${cancelTarget.id}/cancel`, { method: 'PATCH', credentials: 'include' })
+      const res = await authFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile/me/bookings/${cancelTarget.id}/cancel`, { method: 'PATCH' })
       const data = await res.json()
       if (!res.ok) { alert(data.message); return }
       setBookings(prev => prev.map(b => b.id === cancelTarget.id ? { ...b, status: 'cancelled' } : b))
@@ -284,7 +284,6 @@ export default function AccountPage() {
     finally { setCancellingId(null) }
   }
 
-  // ── UPDATED: exportSinglePDF with full payment breakdown ─────────────────────
   const exportSinglePDF = (booking) => {
     import('jspdf').then(({ default: jsPDF }) => {
       const doc = new jsPDF()
@@ -301,7 +300,6 @@ export default function AccountPage() {
       doc.text(`Status: ${s.label}`, 20, 61)
       doc.setDrawColor(230, 215, 200); doc.setLineWidth(0.2); doc.line(20, 66, 190, 66)
 
-      // Payment breakdown for PDF
       const PRICE_PER_PERSON = 150
       const pdfTotal = (parseInt(booking.participants) || 1) * PRICE_PER_PERSON
       const pdfIsFullPay = booking.paymentMode === 'full'
@@ -414,7 +412,6 @@ export default function AccountPage() {
         <aside className={`green-sidebar fixed top-0 left-0 h-full z-40 flex flex-col transition-all duration-300 ${sideW} overflow-hidden flex-shrink-0`} style={{boxShadow:'6px 0 32px rgba(107,117,86,0.30)'}}>
           <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-[#C87D87]/50 to-transparent"/>
 
-          {/* Header */}
           <div className={`flex items-center border-b border-white/10 flex-shrink-0 ${collapsed?'justify-center px-0 py-5':'justify-between px-6 py-5'}`}>
             {!collapsed && (
               <Link href="/" className="group logo">
@@ -430,7 +427,6 @@ export default function AccountPage() {
             </button>
           </div>
 
-          {/* Avatar (expanded) */}
           {!collapsed && (
             <div className="px-5 py-4 border-b border-white/8 flex-shrink-0">
               <div className="flex items-center gap-3">
@@ -456,7 +452,6 @@ export default function AccountPage() {
             </div>
           )}
 
-          {/* Avatar (collapsed) */}
           {collapsed && (
             <div className="flex justify-center py-3 border-b border-white/8 flex-shrink-0">
               <label htmlFor="avatar-upload-c" className="cursor-pointer" title="Change photo">
@@ -469,7 +464,6 @@ export default function AccountPage() {
             </div>
           )}
 
-          {/* Nav */}
           <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-hidden">
             {sideNav.map(item => (
               <button key={item.id} onClick={() => setActiveSection(item.id)} title={collapsed ? item.label : undefined}
@@ -488,7 +482,6 @@ export default function AccountPage() {
             ))}
           </nav>
 
-          {/* Logout */}
           <div className="border-t border-white/8 py-3 px-2 flex-shrink-0">
             <button onClick={handleLogout} title="Log out" className={`w-full flex items-center rounded-xl text-white/40 hover:text-red-300 hover:bg-red-500/10 transition-all group ${collapsed?'justify-center px-0 py-3':'gap-3 px-3 py-2.5'}`}>
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 flex-shrink-0 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
@@ -604,7 +597,6 @@ export default function AccountPage() {
 
                 {!bookingsLoading && !bookingsError && bookings.length > 0 && (
                   <>
-                    {/* Filter chips */}
                     <div className="flex flex-wrap gap-2">
                       {['all', ...Object.keys(bookings.reduce((acc,b) => { acc[b.status?.toLowerCase()??'unknown']=1; return acc }, {}))].map(status => {
                         const s = status==='all' ? { label:'All', dot:'bg-[#C87D87]', text:'text-[#C87D87]', bg:'bg-[#C87D87]/10', border:'border-[#C87D87]/25' } : getStatus(status)
@@ -691,7 +683,6 @@ export default function AccountPage() {
                                       </p>
                                     )}
 
-                                    {/* ── UPDATED: Show "Paid" only ── */}
                                     {booking.status?.toLowerCase()==='confirmed' && booking.paymentStatus==='PAID' && (
                                       <div className="inline-flex items-center gap-1.5 font-['Cormorant_Garamond',serif] text-[0.62rem] tracking-[0.18em] uppercase text-[#6B7556] bg-[#6B7556]/10 border border-[#6B7556]/25 px-3 py-1.5 rounded-lg">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>

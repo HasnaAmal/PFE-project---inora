@@ -25,15 +25,21 @@ export const register = async (req, res) => {
   try {
     const { fullName, email, password, adminCode } = req.body;
 
+    // Determine role based on admin code
     const role = adminCode && adminCode === process.env.ADMIN_SECRET_CODE
       ? 'admin'
       : 'user';
 
+    // Check if email already exists
     const existing = await prisma.user.findFirst({ where: { email } });
-    if (existing) return res.status(400).json({ message: 'Email already exists' });
+    if (existing) {
+      return res.status(400).json({ message: 'Email already exists' });
+    }
 
+    // Hash password
     const hashed = await bcrypt.hash(password, 10);
 
+    // Create user
     const user = await prisma.user.create({
       data: { 
         id: uuidv4(),
@@ -44,13 +50,21 @@ export const register = async (req, res) => {
       }
     });
 
+    // Generate JWT token
+    const accessToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    // Set cookie
+    res.cookie("token", accessToken, getCookieOptions());
+
+    // Respond with user + token
     return res.status(201).json({
       message: 'Registration successful',
+      token: accessToken,
       user: { id: user.id, fullName: user.fullName, email: user.email, role: user.role }
     });
 
   } catch (error) {
-    console.error(error);
+    console.error('❌ [register] Error:', error);
     return res.status(500).json({ message: 'Something went wrong' });
   }
 };

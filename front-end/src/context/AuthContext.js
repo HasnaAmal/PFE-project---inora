@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 const API = process.env.NEXT_PUBLIC_API_URL;
 const AuthContext = createContext(null);
 
+// 🔹 get cookie
 const getCookie = (name) => {
   if (typeof document === 'undefined') return null;
   const value = `; ${document.cookie}`;
@@ -13,16 +14,18 @@ const getCookie = (name) => {
   return null;
 };
 
+// 🔹 get token
 const getToken = () => {
   return getCookie('token') || localStorage.getItem('token') || null;
 };
 
 export function AuthProvider({ children }) {
-  const [user,      setUser]      = useState(null);
-  const [loading,   setLoading]   = useState(true);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
   const router = useRouter();
 
+  // 🔹 fetch with auth
   const authFetch = useCallback(async (url, options = {}) => {
     const token = getToken();
     const isFormData = options.body instanceof FormData;
@@ -40,12 +43,24 @@ export function AuthProvider({ children }) {
     });
   }, []);
 
+  // 🔥 FIXED fetchMe
   const fetchMe = useCallback(async () => {
+    const token = getToken();
+
+    // ✅ ما نديروش request إلا ما كاينش token
+    if (!token) {
+      setUser(null);
+      setLoading(false);
+      setAuthReady(true);
+      return;
+    }
+
     try {
-      const token = getToken();
       const res = await fetch(`${API}/api/auth/me`, {
         credentials: 'include',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (res.status === 403) {
@@ -53,10 +68,14 @@ export function AuthProvider({ children }) {
         router.push('/login?suspended=true');
         return;
       }
+
       if (!res.ok) throw new Error('Not logged in');
+
       const data = await res.json();
       setUser(data.user ?? data);
-    } catch {
+
+    } catch (err) {
+      console.log("fetchMe error:", err);
       setUser(null);
     } finally {
       setLoading(false);
@@ -64,16 +83,18 @@ export function AuthProvider({ children }) {
     }
   }, [router]);
 
+  // 🔹 run once
   useEffect(() => {
     fetchMe();
   }, [fetchMe]);
 
   const refreshUser = useCallback(() => fetchMe(), [fetchMe]);
 
+  // 🔹 login
   const login = async (email, password, selectedRole, adminCode) => {
     const res = await fetch(`${API}/api/auth/login`, {
-      method:      'POST',
-      headers:     { 'Content-Type': 'application/json' },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({
         email,
@@ -90,6 +111,7 @@ export function AuthProvider({ children }) {
 
     const data = await res.json();
 
+    // ✅ save token
     if (data.token) {
       localStorage.setItem('token', data.token);
     } else {
@@ -98,13 +120,18 @@ export function AuthProvider({ children }) {
     }
 
     setUser(data.user ?? data);
+
+    // 🔥 مهم باش يتحدّث مباشرة
+    await fetchMe();
+
     return data;
   };
 
+  // 🔹 register
   const register = async (fullName, email, password, adminCode) => {
     const res = await fetch(`${API}/api/auth/register`, {
-      method:      'POST',
-      headers:     { 'Content-Type': 'application/json' },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({
         fullName,
@@ -120,15 +147,23 @@ export function AuthProvider({ children }) {
     }
 
     const data = await res.json();
-    if (data.token) localStorage.setItem('token', data.token);
+
+    if (data.token) {
+      localStorage.setItem('token', data.token);
+    }
+
     setUser(data.user ?? data);
+    await fetchMe();
+
     return data;
   };
 
+  // 🔹 logout
   const logout = async () => {
     try {
       await authFetch(`${API}/api/auth/logout`, { method: 'POST' });
     } catch {}
+
     localStorage.removeItem('token');
     setUser(null);
     router.push('/');
@@ -138,17 +173,25 @@ export function AuthProvider({ children }) {
   if (!authReady) return null;
 
   return (
-    <AuthContext.Provider value={{
-      user, setUser,
-      login, register, logout,
-      loading, authReady,
-      refreshUser, authFetch,
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        setUser,
+        login,
+        register,
+        logout,
+        loading,
+        authReady,
+        refreshUser,
+        authFetch,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
+// 🔹 hook
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used inside AuthProvider');

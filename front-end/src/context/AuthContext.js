@@ -19,19 +19,16 @@ const getToken = () => {
 
 export function AuthProvider({ children }) {
   const [user,      setUser]      = useState(null);
-  const [loading,   setLoading]   = useState(true);  // true until auth is resolved
-  const [authReady, setAuthReady] = useState(false);  // true after first fetchMe
+  const [loading,   setLoading]   = useState(true);
+  const [authReady, setAuthReady] = useState(false);
   const router = useRouter();
 
   const authFetch = useCallback(async (url, options = {}) => {
     const token = getToken();
-    
     const isFormData = options.body instanceof FormData;
 
     const headers = {
-      // Don't set Content-Type for FormData — browser sets it with boundary
       ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
-      // Let caller override headers, but auth always wins
       ...options.headers,
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
@@ -45,7 +42,12 @@ export function AuthProvider({ children }) {
 
   const fetchMe = useCallback(async () => {
     try {
-      const res = await authFetch(`${API}/api/auth/me`);
+      const token = getToken();
+      const res = await fetch(`${API}/api/auth/me`, {
+        credentials: 'include',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+
       if (res.status === 403) {
         setUser(null);
         router.push('/login?suspended=true');
@@ -60,7 +62,7 @@ export function AuthProvider({ children }) {
       setLoading(false);
       setAuthReady(true);
     }
-  }, [authFetch, router]);
+  }, [router]);
 
   useEffect(() => {
     fetchMe();
@@ -133,10 +135,7 @@ export function AuthProvider({ children }) {
     router.refresh();
   };
 
-  // Block rendering until auth state is resolved — prevents the race condition
-  if (!authReady) {
-    return null; // or your <LoadingScreen /> if you want a global spinner
-  }
+  if (!authReady) return null;
 
   return (
     <AuthContext.Provider value={{

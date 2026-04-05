@@ -104,12 +104,19 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const handleLogout = async () => {
-    setDropdownOpen(false);
+const handleLogout = async () => {
+  console.log('1. handleLogout called');
+  console.log('2. logout type:', typeof logout);
+  console.log('3. logout value:', logout);
+  setDropdownOpen(false);
+  try {
+    console.log('4. calling logout...');
     await logout();
-    router.push('/');
-  };
-
+    console.log('5. logout completed');
+  } catch (err) {
+    console.error('6. Logout error:', err);
+  }
+};
   const markAsRead = async (id) => {
     try {
       // ✅ Use authFetch instead of fetch

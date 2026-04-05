@@ -22,6 +22,44 @@ export default function Navbar() {
   const avatarUrl    = user?.avatarUrl ?? null;
   const unreadNotifs = notifications.filter(n => !n.read);
 
+  // Helper function to scroll to section
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const offset = 80; // Account for fixed navbar height
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const handleNavClick = (e, sectionId) => {
+    e.preventDefault();
+    if (window.location.pathname !== '/') {
+      // If not on homepage, navigate to homepage first then scroll
+      router.push('/');
+      // Store the section to scroll to after navigation
+      sessionStorage.setItem('scrollTo', sectionId);
+    } else {
+      scrollToSection(sectionId);
+    }
+  };
+
+  // Handle scrolling after navigation to homepage
+  useEffect(() => {
+    const scrollTo = sessionStorage.getItem('scrollTo');
+    if (scrollTo && window.location.pathname === '/') {
+      setTimeout(() => {
+        scrollToSection(scrollTo);
+        sessionStorage.removeItem('scrollTo');
+      }, 100);
+    }
+  }, []);
+
   // ── REST polling ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!user || isAdmin) return;
@@ -173,7 +211,12 @@ export default function Navbar() {
       </div>
     );
 
-  const navLinks = ['Home', 'About', 'Services', 'Contact'];
+  const navLinks = [
+    { label: 'About us', sectionId: 'hero' },
+    { label: 'Activities', sectionId: 'activities' },
+    { label: 'How it works', sectionId: 'process' },
+    { label: 'Reviews', sectionId: 'reviews' }
+  ];
 
   return (
     <>
@@ -284,24 +327,25 @@ export default function Navbar() {
           {/* CENTER LINKS — desktop only */}
           <ul className="hidden md:flex gap-10 list-none absolute left-1/2 -translate-x-1/2">
             {navLinks.map(item => (
-              <li key={item} className="relative group">
-                <Link
-                  href={item === 'Home' ? '/' : `#${item.toLowerCase()}`}
-                  className="font-['Cormorant_Garamond',serif] text-xs tracking-[0.22em] uppercase text-[#FBEAD6]/80 hover:text-[#C87D87] transition-colors duration-300">
-                  {item}
-                </Link>
+              <li key={item.label} className="relative group">
+                {item.label === 'Home' ? (
+                  <Link
+                    href="/"
+                    className="font-['Cormorant_Garamond',serif] text-xs tracking-[0.22em] uppercase text-[#FBEAD6]/80 hover:text-[#C87D87] transition-colors duration-300"
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  <button
+                    onClick={(e) => handleNavClick(e, item.sectionId)}
+                    className="font-['Cormorant_Garamond',serif] text-xs tracking-[0.22em] uppercase text-[#FBEAD6]/80 hover:text-[#C87D87] transition-colors duration-300 bg-transparent border-none cursor-pointer"
+                  >
+                    {item.label}
+                  </button>
+                )}
                 <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-px bg-[#C87D87] group-hover:w-full transition-all duration-300"/>
               </li>
             ))}
-            {isAdmin && (
-              <li className="relative group">
-                <Link href="/admin"
-                  className="font-['Cormorant_Garamond',serif] text-xs tracking-[0.22em] uppercase text-[#C87D87] hover:text-[#FBEAD6] transition-colors duration-300">
-                  Admin
-                </Link>
-                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-px bg-[#FBEAD6] group-hover:w-full transition-all duration-300"/>
-              </li>
-            )}
           </ul>
 
           {/* AUTH AREA */}

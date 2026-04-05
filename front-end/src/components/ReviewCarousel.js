@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 
@@ -14,14 +14,20 @@ export default function ReviewCarousel({ reviews = [], reviewsIn }) {
   const [idx, setIdx] = useState(0);
   const [perPage, setPerPage] = useState(3);
   
-  // Responsive perPage based on screen width
-  useState(() => {
+  // Responsive perPage based on screen width - FIXED for SSR
+  useEffect(() => {
     const updatePerPage = () => {
-      if (window.innerWidth < 640) setPerPage(1);
-      else if (window.innerWidth < 1024) setPerPage(2);
-      else setPerPage(3);
+      if (typeof window !== 'undefined') {
+        if (window.innerWidth < 640) setPerPage(1);
+        else if (window.innerWidth < 1024) setPerPage(2);
+        else setPerPage(3);
+      }
     };
+    
+    // Set initial value
     updatePerPage();
+    
+    // Add resize listener
     window.addEventListener('resize', updatePerPage);
     return () => window.removeEventListener('resize', updatePerPage);
   }, []);

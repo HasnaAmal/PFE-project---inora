@@ -28,7 +28,7 @@ const stats = [
 ];
 
 const footerLinks = [
-  { label: 'Home', href: '#hero' },
+  { label: 'About us', href: '#hero' },
   { label: 'Activities', href: '#activities' },
   { label: 'How It Works', href: '#process' },
   { label: 'Reviews', href: '#reviews' },
@@ -1215,7 +1215,7 @@ export default function Home() {
               }}>
                 Contact Us
               </span>
-              <a href="mailto:hello@inora.co"
+              <a href="mailto:hasna0amal@gmail.com"
                 style={{
                   display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none',
                   fontFamily: "'Cormorant Garamond', serif", fontSize: '0.92rem',
@@ -1224,9 +1224,9 @@ export default function Home() {
                 onMouseEnter={e => e.currentTarget.style.color = '#C87D87'}
                 onMouseLeave={e => e.currentTarget.style.color = 'rgba(251,234,214,0.65)'}>
                 <span style={{ fontSize: '0.7rem', color: 'rgba(200,125,135,0.65)' }}>✉</span>
-                hello@inora.co
+                hello@inora.com
               </a>
-              <a href="tel:+12345678900"
+              <a href="tel:+212654533114"
                 style={{
                   display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none',
                   fontFamily: "'Cormorant Garamond', serif", fontSize: '0.92rem',

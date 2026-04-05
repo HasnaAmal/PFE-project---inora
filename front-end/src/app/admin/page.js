@@ -246,7 +246,13 @@ export default function Admin() {
   const [payments,           setPayments]           = useState([]);
   const [paymentsLoading,    setPaymentsLoading]    = useState(false);
   const [selectedBooking,    setSelectedBooking]    = useState(null);
-
+  const [carouselIdx, setCarouselIdx] = useState(0);
+  const allPublished    = [...DEFAULT_REVIEWS, ...approvedReviews];
+const visibleCount = 3;
+const carouselMax  = Math.max(0, allPublished.length - visibleCount);
+const visibleReviews = allPublished.slice(carouselIdx, carouselIdx + visibleCount);
+const carouselNext = () => setCarouselIdx(i => Math.min(i + visibleCount, carouselMax));
+const carouselPrev = () => setCarouselIdx(i => Math.max(i - visibleCount, 0));
   // ── Profile state ──
   const avatarRef    = useRef(null);
   const [profile,    setProfile]    = useState(null);
@@ -1000,17 +1006,17 @@ export default function Admin() {
   )}
 
   {/* ════════════ REVIEWS ════════════ */}
-  {activeTab === 'reviews' && (
-    <div className="space-y-10" style={{ animation:'fadeIn .3s ease both' }}>
-
-      {/* ── PENDING ── */}
+{activeTab === 'reviews' && (() => {
+  return (
+    <div className="space-y-6" style={{ animation: 'fadeIn .3s ease both' }}>
+      {/* ════ PENDING ════ */}
       <div>
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-4 mb-4">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-300/40 to-transparent"/>
           <div className="flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-amber-200/60 bg-amber-50/60">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"/>
             <p className="font-['Cormorant_Garamond',serif] italic text-[0.65rem] tracking-[0.3em] uppercase text-amber-600">
-              Pending · {pendingReviews.length}
+              Awaiting Approval · {pendingReviews.length}
             </p>
           </div>
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-300/40 to-transparent"/>
@@ -1035,7 +1041,7 @@ export default function Admin() {
             {pendingReviews.map((r, i) => (
               <div key={r.id}
                 className="relative bg-[#fef6ec] rounded-2xl border border-amber-200/50 overflow-hidden shadow-[0_2px_12px_rgba(200,125,135,0.06)]"
-                style={{ animation:`fadeUp .25s ease ${i*60}ms both` }}>
+                style={{ animation: `fadeUp .25s ease ${i * 60}ms both` }}>
                 <div className="h-0.5 bg-gradient-to-r from-transparent via-amber-400/60 to-transparent"/>
                 <div className="absolute top-0 left-0"><LaceCorner/></div>
                 <div className="absolute top-0 right-0"><LaceCorner flip/></div>
@@ -1043,22 +1049,32 @@ export default function Admin() {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-2.5">
                       <div className="w-9 h-9 rounded-full border border-amber-200/60 overflow-hidden flex-shrink-0 bg-amber-50 flex items-center justify-center text-amber-600 font-bold text-sm">
-                        {r.user.avatarUrl
+                        {r.user?.avatarUrl
                           ? <img src={resolveAvatar(r.user.avatarUrl)} alt="" className="w-full h-full object-cover"/>
-                          : r.user.fullName.charAt(0).toUpperCase()
+                          : r.user?.fullName?.charAt(0).toUpperCase()
                         }
                       </div>
                       <div>
-                        <p className="font-['Playfair_Display',serif] text-sm text-[#3a3027] leading-none">{r.user.fullName}</p>
+                        <p className="font-['Playfair_Display',serif] text-sm text-[#3a3027] leading-none">{r.user?.fullName}</p>
                         <span className="text-amber-400 text-[0.65rem] mt-0.5 block tracking-wider">
                           {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
                         </span>
                       </div>
                     </div>
-                    <span className="font-['Cormorant_Garamond',serif] text-[0.5rem] tracking-widest uppercase px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-500 flex-shrink-0 flex items-center gap-1">
-                      <span className="w-1 h-1 rounded-full bg-amber-400 animate-pulse"/> New
-                    </span>
+                    <div className="flex flex-col items-end gap-1.5">
+                      <span className="font-['Cormorant_Garamond',serif] text-[0.5rem] tracking-widest uppercase px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-500 flex items-center gap-1">
+                        <span className="w-1 h-1 rounded-full bg-amber-400 animate-pulse"/> New
+                      </span>
+                      <span className="font-['Cormorant_Garamond',serif] italic text-[0.55rem] text-[#7a6a5a]/35">
+                        {r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : ''}
+                      </span>
+                    </div>
                   </div>
+                  {r.activity && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 mb-3 rounded-lg bg-[#C87D87]/8 border border-[#C87D87]/15 font-['Cormorant_Garamond',serif] italic text-[0.62rem] text-[#C87D87]/65">
+                      {r.activity}
+                    </span>
+                  )}
                   <div className="font-['Playfair_Display',serif] text-[3rem] text-amber-200/60 leading-none -mt-2 mb-0.5 select-none">"</div>
                   <p className="font-['Cormorant_Garamond',serif] italic text-sm text-[#5a4a3a] leading-[1.8] line-clamp-4 mb-5">{r.comment}</p>
                   <div className="flex gap-2 pt-3 border-t border-amber-100">
@@ -1078,95 +1094,150 @@ export default function Admin() {
         )}
       </div>
 
-      {/* ── PUBLISHED ── */}
+      {/* ════ PUBLISHED — CAROUSEL ════ */}
       <div>
         <div className="flex items-center gap-4 mb-6">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#6B7556]/35 to-transparent"/>
           <div className="flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-[#6B7556]/22 bg-[#6B7556]/8">
             <span className="w-1.5 h-1.5 rounded-full bg-[#6B7556]"/>
             <p className="font-['Cormorant_Garamond',serif] italic text-[0.65rem] tracking-[0.3em] uppercase text-[#6B7556]">
-              Published · {DEFAULT_REVIEWS.length + approvedReviews.length}
+              Published · {allPublished.length}
             </p>
           </div>
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#6B7556]/35 to-transparent"/>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {/* Default reviews — locked */}
-          {DEFAULT_REVIEWS.map((r, i) => (
-            <div key={r.id}
-              className="relative bg-[#fef6ec] rounded-2xl border border-[#C87D87]/15 overflow-hidden shadow-[0_2px_12px_rgba(58,48,39,0.05)]"
-              style={{ animation:`fadeUp .25s ease ${i*50}ms both`, opacity:0.85 }}>
-              <div className="h-0.5 bg-gradient-to-r from-transparent via-[#6B7556]/50 to-transparent"/>
-              <div className="absolute top-0 left-0"><LaceCorner/></div>
-              <div className="absolute top-0 right-0"><LaceCorner flip/></div>
-              <div className="px-5 pt-6 pb-5">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#6B7556]/80 to-[#C87D87]/80 flex items-center justify-center text-white font-['Playfair_Display',serif] text-sm flex-shrink-0">
-                      {r.user.fullName.charAt(0)}
-                    </div>
-                    <div>
-                      <p className="font-['Playfair_Display',serif] text-sm text-[#3a3027] leading-none">{r.user.fullName}</p>
-                      <span className="text-[#6B7556] text-[0.65rem] mt-0.5 block tracking-wider">
-                        {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
-                      </span>
-                    </div>
-                  </div>
-                  <span className="font-['Cormorant_Garamond',serif] text-[0.5rem] tracking-widest uppercase px-2 py-0.5 rounded-full bg-[#3a3027]/5 border border-[#3a3027]/8 text-[#7a6a5a]/40 flex-shrink-0 flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                    </svg>
-                    Default
-                  </span>
-                </div>
-                <div className="font-['Playfair_Display',serif] text-[3rem] text-[#C87D87]/10 leading-none -mt-2 mb-0.5 select-none">"</div>
-                <p className="font-['Cormorant_Garamond',serif] italic text-sm text-[#5a4a3a] leading-[1.8] line-clamp-4 mb-5">{r.comment}</p>
-                <div className="flex items-center justify-between pt-3 border-t border-[#C87D87]/10">
-                  <span className="inline-flex items-center gap-1.5 font-['Cormorant_Garamond',serif] text-[0.55rem] tracking-widest uppercase text-[#6B7556] bg-[#6B7556]/8 border border-[#6B7556]/15 px-2.5 py-1 rounded-full">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#6B7556]"/> Published
-                  </span>
-                  <span className="font-['Cormorant_Garamond',serif] italic text-[0.55rem] text-[#7a6a5a]/22 tracking-widest">
-                    Non-editable
-                  </span>
-                </div>
-              </div>
+        {allPublished.length === 0 ? (
+          <div className="relative rounded-2xl border border-dashed border-[#6B7556]/20 bg-[#fef6ec] py-10 flex flex-col items-center gap-2">
+            <div className="w-12 h-12 rounded-full border border-[#6B7556]/18 bg-[#6B7556]/6 flex items-center justify-center">
+              <span className="text-[#6B7556]/35 text-lg">✦</span>
             </div>
-          ))}
+            <p className="font-['Playfair_Display',serif] italic text-[#3a3027]/35 text-base">No published reviews yet</p>
+          </div>
+        ) : (
+          <div>
+            {/* ── Carousel wrapper ── */}
+            <div className="relative">
 
-          {/* DB approved reviews — deletable */}
-                    {/* DB approved reviews — empty state */}
-          {approvedReviews.length === 0 && (
-            <div className="col-span-full relative rounded-2xl overflow-hidden"
-              style={{ background:'linear-gradient(135deg,#fdf0e8 0%,#fef6ec 50%,#fdf0e8 100%)', border:'1px solid rgba(200,125,135,0.18)' }}>
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[#C87D87]/45 to-transparent"/>
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[#C87D87]/25 to-transparent"/>
-              <div className="absolute top-0 left-0"><LaceCorner/></div>
-              <div className="absolute top-0 right-0"><LaceCorner flip/></div>
-              <div className="absolute bottom-0 left-0" style={{ transform:'scaleY(-1)' }}><LaceCorner/></div>
-              <div className="absolute bottom-0 right-0" style={{ transform:'scale(-1,-1)' }}><LaceCorner flip/></div>
-              <div className="relative flex flex-col items-center justify-center py-14 gap-4 px-8">
-                <p className="font-['Playfair_Display',serif] italic text-[#3a3027]/45 text-xl mb-1.5">No approved reviews yet</p>
-                <p className="font-['Cormorant_Garamond',serif] italic text-sm text-[#7a6a5a]/40 tracking-wide leading-relaxed text-center">
-                  Approved reviews will automatically appear on the homepage,<br/>
-                  alongside Inora's default reviews.
-                </p>
-                {pendingReviews.length > 0 && (
-                  <div className="flex items-center gap-2 mt-1 px-4 py-2 rounded-full border border-amber-200/50 bg-amber-50/60">
-                    <span className="text-amber-400 text-xs">↑</span>
-                    <p className="font-['Cormorant_Garamond',serif] italic text-[0.65rem] text-amber-600/70 tracking-wide">
-                      {pendingReviews.length} review{pendingReviews.length > 1 ? 's' : ''} awaiting approval
-                    </p>
-                  </div>
-                )}
+              {/* Cards row */}
+              <div className="grid grid-cols-3 gap-5 overflow-hidden">
+                {visibleReviews.map((r, i) => {
+                  const isDefault = !r.id || typeof r.id === 'string';
+                  return (
+                    <div key={r.id ?? r.name ?? i}
+                      className="rev-card relative"
+                      style={{ animation: 'fadeIn .3s ease both' }}>
+                      <div className="absolute top-0 left-0"><LaceCorner/></div>
+                      <div className="absolute top-0 right-0"><LaceCorner flip/></div>
+                      <div className="pt-5">
+                        {/* Header */}
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-9 h-9 rounded-full border border-[#C87D87]/22 overflow-hidden flex-shrink-0 bg-[#C87D87]/10 flex items-center justify-center text-[#C87D87] font-bold text-sm">
+                              {r.user?.avatarUrl
+                                ? <img src={resolveAvatar(r.user.avatarUrl)} alt="" className="w-full h-full object-cover"/>
+                                : (r.user?.fullName || r.name || '?').charAt(0).toUpperCase()
+                              }
+                            </div>
+                            <div>
+                              <p className="font-['Playfair_Display',serif] text-sm text-[#3a3027] leading-none">{r.user?.fullName || r.name}</p>
+                              <span className="text-[#C87D87]/65 text-[0.65rem] mt-0.5 block tracking-wider">
+                                {'★'.repeat(r.rating || r.stars || 5)}{'☆'.repeat(5 - (r.rating || r.stars || 5))}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-1.5">
+                            {isDefault ? (
+                              <span className="font-['Cormorant_Garamond',serif] text-[0.5rem] tracking-widest uppercase px-2 py-0.5 rounded-full bg-[#6B7556]/8 border border-[#6B7556]/20 text-[#6B7556]/60">
+                                Curated
+                              </span>
+                            ) : (
+                              <span className="font-['Cormorant_Garamond',serif] text-[0.5rem] tracking-widest uppercase px-2 py-0.5 rounded-full bg-[#6B7556]/10 border border-[#6B7556]/25 text-[#6B7556]">
+                                Live
+                              </span>
+                            )}
+                            {r.createdAt && (
+                              <span className="font-['Cormorant_Garamond',serif] italic text-[0.55rem] text-[#7a6a5a]/35">
+                                {new Date(r.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Activity tag */}
+                        {(r.activity || r.activityLabel) && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 mb-3 rounded-lg bg-[#C87D87]/8 border border-[#C87D87]/15 font-['Cormorant_Garamond',serif] italic text-[0.62rem] text-[#C87D87]/65">
+                            {r.activity || r.activityLabel}
+                          </span>
+                        )}
+
+                        {/* Quote */}
+                        <div className="font-['Playfair_Display',serif] text-[3rem] text-[#C87D87]/15 leading-none -mt-2 mb-0.5 select-none">"</div>
+                        <p className="font-['Cormorant_Garamond',serif] italic text-sm text-[#5a4a3a] leading-[1.8] line-clamp-4 mb-4">
+                          {r.comment || r.text}
+                        </p>
+
+                        {/* Remove — only real DB reviews */}
+                        {!isDefault && (
+                          <div className="pt-3 border-t border-[#C87D87]/8">
+                            <button onClick={() => deleteReview(r.id)}
+                              className="w-full font-['Cormorant_Garamond',serif] text-[0.58rem] tracking-widest uppercase py-1.5 rounded-xl border border-[#C87D87]/15 text-[#C87D87]/35 hover:bg-[#C87D87]/8 hover:text-[#C87D87]/60 hover:border-[#C87D87]/25 transition-all">
+                              Remove
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
-          )}
 
-        </div>
+              {/* ── Prev / Next arrows ── */}
+              {carouselIdx > 0 && (
+                <button onClick={carouselPrev}
+                  className="absolute -left-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-[#fef6ec] border border-[#C87D87]/25 shadow-[0_2px_12px_rgba(200,125,135,0.15)] flex items-center justify-center text-[#C87D87]/60 hover:text-[#C87D87] hover:border-[#C87D87]/45 hover:shadow-[0_4px_18px_rgba(200,125,135,0.22)] transition-all">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/>
+                  </svg>
+                </button>
+              )}
+              {carouselIdx < 	carouselMax && (
+                <button onClick={carouselNext}
+                  className="absolute -right-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-[#fef6ec] border border-[#C87D87]/25 shadow-[0_2px_12px_rgba(200,125,135,0.15)] flex items-center justify-center text-[#C87D87]/60 hover:text-[#C87D87] hover:border-[#C87D87]/45 hover:shadow-[0_4px_18px_rgba(200,125,135,0.22)] transition-all">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            {/* ── Dot indicators ── */}
+            {allPublished.length > visibleCount && (
+              <div className="flex items-center justify-center gap-2 mt-6">
+                {Array.from({ length: Math.ceil(allPublished.length / visibleCount) }).map((_, idx) => (
+  <button key={idx} onClick={() => setCarouselIdx(idx * visibleCount)}
+    className="transition-all duration-200 rounded-full"
+    style={{
+      width:  carouselIdx === idx * visibleCount ? '20px' : '6px',
+      height: '6px',
+      background: carouselIdx === idx * visibleCount ? '#6B7556' : 'rgba(107,117,86,0.25)',
+    }}
+  />
+))}
+              </div>
+            )}
+
+            {/* ── Counter ── */}
+            <p className="text-center font-['Cormorant_Garamond',serif] italic text-[0.6rem] tracking-widest text-[#7a6a5a]/35 mt-2">
+  {carouselIdx + 1}–{Math.min(carouselIdx + visibleCount, allPublished.length)} of {allPublished.length}
+</p>
+          </div>
+        )}
       </div>
+
     </div>
-  )}
+  );
+})()}
 
   {/* ════════════ MY PROFILE ════════════ */}
   {activeTab === 'profile' && (

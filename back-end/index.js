@@ -1,25 +1,25 @@
-import express from 'express';
-import cors from 'cors';
+import express        from 'express';
+import cors           from 'cors';
 import { createServer } from 'http';
-import { Server } from 'socket.io';
-import cron from 'node-cron';
-import cookieParser from 'cookie-parser';
+import { Server }     from 'socket.io';
+import cron           from 'node-cron';
+import cookieParser   from 'cookie-parser';
 import 'dotenv/config';
 
 // Routes
-import auth from './Routes/auth.js';
-import reviewRoutes from './Routes/reviews.js';
-import profile from './Routes/profile.js';
-import bookingRoutes from './Routes/booking.js';
+import auth                from './Routes/auth.js';
+import reviewRoutes        from './Routes/reviews.js';
+import profile             from './Routes/profile.js';
+import bookingRoutes       from './Routes/booking.js';
 import notificationsRouter from './Routes/notifications.js';
-import paymentRoutes from './Routes/payment.js';
-import draftsRouter from './Routes/drafts.js';
+import paymentRoutes       from './Routes/payment.js';
+import draftsRouter        from './Routes/drafts.js';
 
 // Prisma
 import { prisma } from './lib/prisma.js';
 
-const app = express();
-const PORT = process.env.PORT || 4000;
+const app          = express();
+const PORT         = process.env.PORT || 4000;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 // ── HTTP + Socket.io ─────────────────────────────────────────────
@@ -154,8 +154,7 @@ app.use(cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
     const allowedOrigins = [
-      'https://gleaming-trust-production-e46f.up.railway.app',
-      'http://localhost:3000',
+      'https://pleasant-enthusiasm-production-0c41.up.railway.app',
       'http://localhost:3001',
       FRONTEND_URL,
       /\.railway\.app$/,
@@ -196,29 +195,6 @@ app.get('/', (req, res) => res.json({
 app.get('/health', (req, res) =>
   res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() })
 );
-
-// ── DEBUG: Check JWT_SECRET (Remove after fixing) ─────────────────
-app.get('/api/debug/jwt', (req, res) => {
-  res.json({
-    jwtSecretExists: !!process.env.JWT_SECRET,
-    jwtSecretLength: process.env.JWT_SECRET?.length || 0,
-    jwtSecretFirstChar: process.env.JWT_SECRET?.charAt(0) || 'none',
-    nodeEnv: process.env.NODE_ENV,
-    jwtResetSecretExists: !!process.env.JWT_RESET_SECRET,
-    frontendUrl: FRONTEND_URL,
-  });
-});
-
-// ── DEBUG: Check Stripe keys (Remove after fixing) ─────────────────
-app.get('/api/debug/stripe', (req, res) => {
-  res.json({
-    stripeSecretExists: !!process.env.STRIPE_SECRET_KEY,
-    stripeSecretLength: process.env.STRIPE_SECRET_KEY?.length || 0,
-    stripeSecretPrefix: process.env.STRIPE_SECRET_KEY?.substring(0, 7) || 'none',
-    stripeWebhookExists: !!process.env.STRIPE_WEBHOOK_SECRET,
-    nodeEnv: process.env.NODE_ENV,
-  });
-});
 
 // ── Routes ───────────────────────────────────────────────────────
 app.use('/api/auth',          auth);
@@ -261,4 +237,4 @@ process.on('SIGTERM', () => {
   httpServer.close(() => console.log('HTTP server closed'));
 });
 
-export default app; 
+export default app;

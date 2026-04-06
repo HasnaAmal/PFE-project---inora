@@ -50,8 +50,12 @@ export const register = async (req, res) => {
       }
     });
 
-    // Generate JWT token
-    const accessToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    // Generate JWT token with role
+    const accessToken = jwt.sign(
+      { id: user.id, role: user.role }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '7d' }
+    );
 
     // Set cookie
     res.cookie("token", accessToken, getCookieOptions());
@@ -106,7 +110,12 @@ export const login = async (req, res) => {
       }
     }
 
-    const accessToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    // Generate JWT token with role
+    const accessToken = jwt.sign(
+      { id: user.id, role: user.role }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '7d' }
+    );
     
     res.cookie("token", accessToken, getCookieOptions());
 

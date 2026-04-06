@@ -20,6 +20,8 @@ export const protect = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    console.log('Decoded token:', decoded); // ← ZID HAD L LOG
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
@@ -34,6 +36,8 @@ export const protect = async (req, res, next) => {
       }
     });
 
+    console.log('User found:', user); // ← ZID HAD L LOG
+
     if (!user || user.isDeleted) {
       return res.status(401).json({ message: 'Account not found.' });
     }
@@ -46,6 +50,7 @@ export const protect = async (req, res, next) => {
     next();
 
   } catch (error) {
+    console.error('Auth error:', error); // ← ZID HAD L LOG
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({ message: 'Token expired' });
     }
@@ -57,6 +62,7 @@ export const protect = async (req, res, next) => {
 };
 
 export const isAdmin = (req, res, next) => {
+  console.log('isAdmin - req.user:', req.user); // ← ZID HAD L LOG
   if (req.user?.role !== 'admin') {
     return res.status(403).json({ message: 'Access denied. Admin only.' });
   }

@@ -47,8 +47,8 @@ Inora is a modern web platform designed to help users easily organize small-scal
 
 ### 1. Clone the repository
 
-git clone https://github.com/HasnaAmal/inora.git
-cd "PFE project"
+git clone https://github.com/HasnaAmal/PFE-project---inora.git
+cd "PFE project - inora"
 
 ### 2. Install dependencies
 

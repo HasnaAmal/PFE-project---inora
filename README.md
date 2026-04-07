@@ -6,12 +6,7 @@ Inora is a modern web platform designed to help users easily organize small-scal
 
 ## 🔗 Live Demo
 
-👉 **Frontend:** https://your-frontend-link.com  
-👉 **Backend API:** https://your-backend-link.com  
-
-> Replace these links with your deployed URLs (Vercel, Railway, etc.)
-
----
+👉 https://gleaming-trust-production-e46f.up.railway.app/
 
 ## ✨ Features
 
@@ -52,8 +47,8 @@ Inora is a modern web platform designed to help users easily organize small-scal
 
 ### 1. Clone the repository
 
-git clone https://github.com/your-username/inora.git
-cd inora
+git clone https://github.com/HasnaAmal/inora.git
+cd "PFE project"
 
 ### 2. Install dependencies
 
@@ -70,7 +65,7 @@ npm install
 #### 3. Environment variables
 Create a .env file in the backend folder:
 
-DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/inora_db"
+DATABASE_URL="your_postgres_database_link"
 JWT_SECRET="your_secret_key"
 
 # Admin
@@ -117,7 +112,4 @@ Payments are handled via Stripe (use test mode locally)
 Email notifications are sent via Nodemailer
 Make sure PostgreSQL is running before starting the backend
 
-
-#### Host link
-
-https://gleaming-trust-production-e46f.up.railway.app/
+#### This project is a duo work by Hasna Amal & Ouissal Akramou
